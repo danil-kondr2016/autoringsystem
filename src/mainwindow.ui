@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Панель управления системой автоматической подачи звонков</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/images/autoring.ico</normaloff>:/images/autoring.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTableView" name="tableView"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>520</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="action_open"/>
+    <addaction name="action_save"/>
+    <addaction name="action_saveas"/>
+    <addaction name="separator"/>
+    <addaction name="action_upload"/>
+    <addaction name="action_download"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="title">
+     <string>Справка</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
+   <widget class="QMenu" name="menu_instruments">
+    <property name="title">
+     <string>Инструменты</string>
+    </property>
+    <addaction name="action_addlesson"/>
+    <addaction name="action_deletelesson"/>
+    <addaction name="separator"/>
+    <addaction name="action_check"/>
+    <addaction name="separator"/>
+    <addaction name="action_settings"/>
+    <addaction name="action_calculate"/>
+    <addaction name="action_settime"/>
+    <addaction name="action_synctime"/>
+    <addaction name="separator"/>
+    <addaction name="action_doring"/>
+    <addaction name="action_dorings"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menu_instruments"/>
+   <addaction name="menu_help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_open"/>
+   <addaction name="action_save"/>
+   <addaction name="action_saveas"/>
+   <addaction name="separator"/>
+   <addaction name="action_download"/>
+   <addaction name="action_upload"/>
+   <addaction name="separator"/>
+   <addaction name="action_addlesson"/>
+   <addaction name="action_deletelesson"/>
+   <addaction name="separator"/>
+   <addaction name="action_check"/>
+   <addaction name="action_calculate"/>
+   <addaction name="action_doring"/>
+   <addaction name="action_dorings"/>
+  </widget>
+  <action name="action_open">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Открыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="action_save">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action_download">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/download.png</normaloff>:/images/download.png</iconset>
+   </property>
+   <property name="text">
+    <string>Получить расписание</string>
+   </property>
+  </action>
+  <action name="action_upload">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/upload.png</normaloff>:/images/upload.png</iconset>
+   </property>
+   <property name="text">
+    <string>Загрузить расписание</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/exit.png</normaloff>:/images/exit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Выйти</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>О программе</string>
+   </property>
+  </action>
+  <action name="action_addlesson">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
+   </property>
+   <property name="text">
+    <string>Добавить урок</string>
+   </property>
+  </action>
+  <action name="action_deletelesson">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Удалить последний урок</string>
+   </property>
+   <property name="toolTip">
+    <string>Удалить последний урок</string>
+   </property>
+  </action>
+  <action name="action_saveas">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/save_as.png</normaloff>:/images/save_as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить как...</string>
+   </property>
+  </action>
+  <action name="action_check">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/check.png</normaloff>:/images/check.png</iconset>
+   </property>
+   <property name="text">
+    <string>Проверить расписание</string>
+   </property>
+  </action>
+  <action name="action_settime">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/set_time.png</normaloff>:/images/set_time.png</iconset>
+   </property>
+   <property name="text">
+    <string>Установить время на внутренних часах системы</string>
+   </property>
+  </action>
+  <action name="action_settings">
+   <property name="text">
+    <string>Настройки</string>
+   </property>
+  </action>
+  <action name="action_synctime">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/sync_time.png</normaloff>:/images/sync_time.png</iconset>
+   </property>
+   <property name="text">
+    <string>Синхронизировать внутренние часы системы с компьютерными</string>
+   </property>
+  </action>
+  <action name="action_calculate">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/calculator.png</normaloff>:/images/calculator.png</iconset>
+   </property>
+   <property name="text">
+    <string>Рассчитать расписание</string>
+   </property>
+  </action>
+  <action name="action_doring">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/do_ring.png</normaloff>:/images/do_ring.png</iconset>
+   </property>
+   <property name="text">
+    <string>Дать экстренный звонок</string>
+   </property>
+  </action>
+  <action name="action_dorings">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/do_rings.png</normaloff>:/images/do_rings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Подать несколько звонков</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>action_exit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_open</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_save</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_addlesson</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addLastLesson()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_deletelesson</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>deleteLastLesson()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_saveas</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveScheduleAs()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_check</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>checkSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_about</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>aboutApplication()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_upload</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>uploadSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_download</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>downloadSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_settime</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setTime()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_synctime</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>putTimeFromPC()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_calculate</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>invokeCalculator()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_doring</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>doRing()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_dorings</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>doManyRings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>loadSchedule()</slot>
+  <slot>saveSchedule()</slot>
+  <slot>addLastLesson()</slot>
+  <slot>deleteLastLesson()</slot>
+  <slot>saveScheduleAs()</slot>
+  <slot>checkSchedule()</slot>
+  <slot>aboutApplication()</slot>
+  <slot>uploadSchedule()</slot>
+  <slot>downloadSchedule()</slot>
+  <slot>setTime()</slot>
+  <slot>putTimeFromPC()</slot>
+  <slot>invokeCalculator()</slot>
+  <slot>doRing()</slot>
+  <slot>doManyRings()</slot>
+ </slots>
+</ui>

@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Calculator</class>
+ <widget class="QMainWindow" name="Calculator">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>438</width>
+    <height>378</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Калькулятор расписания</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/images/calculator.png</normaloff>:/images/calculator.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="main_schedule_parameters">
+       <attribute name="title">
+        <string>Основные параметры расписания</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="lesson_quantity">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>15</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Количество уроков</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Время начала первого урока</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QTimeEdit" name="first_lesson_start">
+            <property name="displayFormat">
+             <string>HH:mm</string>
+            </property>
+            <property name="timeSpec">
+             <enum>Qt::LocalTime</enum>
+            </property>
+            <property name="time">
+             <time>
+              <hour>8</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Длительность каждого урока</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="lesson_delay">
+            <property name="maximum">
+             <number>60</number>
+            </property>
+            <property name="value">
+             <number>45</number>
+            </property>
+            <property name="displayIntegerBase">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="breaks">
+       <attribute name="title">
+        <string>Перемены</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Длительность каждой перемены</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="break_delay">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>240</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="equalize">
+            <property name="text">
+             <string>Уравнять</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Длительности перемен</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QTableView" name="break_delays"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Величина изменения длительности</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="break_delta"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="lengthen_delays">
+            <property name="text">
+             <string>Продлить</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="shorten_delays">
+            <property name="text">
+             <string>Сократить</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="export_schedule">
+        <property name="text">
+         <string>Сохранить расписание</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>export_schedule</tabstop>
+  <tabstop>lesson_quantity</tabstop>
+  <tabstop>first_lesson_start</tabstop>
+  <tabstop>break_delay</tabstop>
+  <tabstop>equalize</tabstop>
+  <tabstop>break_delays</tabstop>
+  <tabstop>break_delta</tabstop>
+  <tabstop>shorten_delays</tabstop>
+  <tabstop>lengthen_delays</tabstop>
+  <tabstop>lesson_delay</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>export_schedule</sender>
+   <signal>clicked()</signal>
+   <receiver>Calculator</receiver>
+   <slot>saveSchedule()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>261</x>
+     <y>355</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>436</x>
+     <y>343</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lesson_quantity</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Calculator</receiver>
+   <slot>resizeSchedule(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>222</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>equalize</sender>
+   <signal>clicked()</signal>
+   <receiver>Calculator</receiver>
+   <slot>equalize()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>383</x>
+     <y>55</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>432</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lengthen_delays</sender>
+   <signal>clicked()</signal>
+   <receiver>Calculator</receiver>
+   <slot>lengthen()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>314</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>238</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>shorten_delays</sender>
+   <signal>clicked()</signal>
+   <receiver>Calculator</receiver>
+   <slot>shorten()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>310</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>433</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>calculateSchedule()</slot>
+  <slot>saveSchedule()</slot>
+  <slot>resizeSchedule(int)</slot>
+  <slot>equalize()</slot>
+  <slot>lengthen()</slot>
+  <slot>shorten()</slot>
+ </slots>
+</ui>
