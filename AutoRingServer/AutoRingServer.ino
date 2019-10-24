@@ -1,4 +1,4 @@
-﻿/*
+/*
 
 AutoRingServer.ino
 
@@ -123,7 +123,8 @@ void handleRoot() {
   answer += "\t<body>\r\n";
   answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
   answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p>[<a href=\"/currstate\">Текущее состояние системы</a>]</p>\r\n";
+  answer += "\t\t<p align=\"center\">[<a href=\"/currstate\">Текущее состояние системы</a>]&nbsp;";
+  answer += "\t\t[<a href=\"/timeset\">Изменить текущее время</a>]</p>\r\n";
   answer += "\t\t<hr>\r\n";
   answer += "\t\t<p align=\"center\">Создано Кондратенко Данилой в июле 2019 года.</p>\r\n";
   answer += "\t</body>\r\n";
@@ -145,7 +146,8 @@ void handleCurrState() {
   answer += "\t<body>\r\n";
   answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
   answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p>[<a href=\"/\">На главную</a>]</p>\r\n";
+  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;"
+  answer += "\t\t[<a href=\"/timeset\">Изменить текущее время</a>]</p>\r\n";
   answer += "\t\t<hr>\r\n";
   answer += "\t\t<p><b>Текущее время системы: </b>";
   sprintf(buf, "%02d:%02d:%02d (%ld): ", Hr, Mn, Sc, Ct);
@@ -182,63 +184,63 @@ void handleCurrState() {
 void handleTimeSetPage() {
   String answer;
 
-  answer += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\r\n"
-  answer += "<html>\r\n"
-  answer += "\t<head>\r\n"
-  answer += "\t\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\r\n"
-  answer += "\t\t<title>Установка времени - Система автоматической подачи звонков</title>\r\n"
-  answer += "\t\t<script>\r\n"
-  answer += "function set_time_values() {\r\n"
-  answer += "\tvar now = new Date();\r\n"
-  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString()\r\n"
-  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n"
-  answer += "}\r\n"
-  answer += "\r\n"
-  answer += "function set_time() {\r\n"
-  answer += "\tvar timeString = prompt(\"Введите время в формате ЧЧ:ММ:СС\");\r\n"
-  answer += "\tvar timeElements = timeString.replace(\";\", \":\").split(\":\");\r\n"
-  answer += "\t\r\n"
-  answer += "\tvar time = new Date;\r\n"
-  answer += "\tif (timeElements.length == 2) {\r\n"
-  answer += "\t\ttime.setHours(\r\n"
-  answer += "\t\t\tparseInt(timeElements[0]),\r\n"
-  answer += "\t\t\tparseInt(timeElements[1])\r\n"
-  answer += "\t\t);\r\n"
-  answer += "\t} else if (timeElements.length == 3) {\r\n"
-  answer += "\t\ttime.setHours(\r\n"
-  answer += "\t\t\tparseInt(timeElements[0]),\r\n"
-  answer += "\t\t\tparseInt(timeElements[1]),\r\n"
-  answer += "\t\t\tparseInt(timeElements[2])\r\n"
-  answer += "\t\t);\r\n"
-  answer += "\t}\r\n"
-  answer += "\tdocument.getElementById(\"time\").value = time.toLocaleTimeString();\r\n"
-  answer += "\tdocument.getElementById(\"timeset\").submit();\r\n"
-  answer += "}\r\n"
-  answer += "\r\n"
-  answer += "window.onload = function() {\r\n"
-  answer += "\tvar now = new Date();\r\n"
-  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString();\r\n"
-  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n"
-  answer += "\r\n"
-  answer += "}\r\n"
-  answer += "setInterval(set_time_values, 1000);\r\n"
-  answer += "\t\t</script>\r\n"
-  answer += "\t</head>\r\n"
-  answer += "\t<body>\r\n"
-  answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n"
-  answer += "\t\t<hr>\r\n"
-  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;\r\n"
-  answer += "\t\t[<a href=\"/currstate\">Текущее состояние системы</a>]</p>\r\n"
-  answer += "\t\t<hr>\r\n"
-  answer += "\t\t<p id=\"client_time\"><b>Клиентское время:</b></p>\r\n"
-  answer += "\t\t<form id=\"timeset\" method=\"post\" action=\"/autoring\">\r\n"
-  answer += "\t\t\t<input type=\"hidden\" name=\"method\" value=\"set\">\r\n"
-  answer += "\t\t\t<input type=\"hidden\" name=\"time\" id=\"time\" value=\"\">\r\n"
-  answer += "\t\t\t<input type=\"button\" value=\"Выставить время самостоятельно\" onclick=\"set_time();\">\r\n"
-  answer += "\t\t\t<input type=\"submit\" value=\"Синхронизировать время\">\r\n"
-  answer += "\t\t</form>\r\n"
-  answer += "\t</body>\r\n"
-  answer += "</html>\r\n"
+  answer += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\r\n";
+  answer += "<html>\r\n";
+  answer += "\t<head>\r\n";
+  answer += "\t\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\r\n";
+  answer += "\t\t<title>Установка времени - Система автоматической подачи звонков</title>\r\n";
+  answer += "\t\t<script>\r\n";
+  answer += "function set_time_values() {\r\n";
+  answer += "\tvar now = new Date();\r\n";
+  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString()\r\n";
+  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n";
+  answer += "}\r\n";
+  answer += "\r\n";
+  answer += "function set_time() {\r\n";
+  answer += "\tvar timeString = prompt(\"Введите время в формате ЧЧ:ММ:СС\");\r\n";
+  answer += "\tvar timeElements = timeString.replace(\";\", \":\").split(\":\");\r\n";
+  answer += "\t\r\n";
+  answer += "\tvar time = new Date;\r\n";
+  answer += "\tif (timeElements.length == 2) {\r\n";
+  answer += "\t\ttime.setHours(\r\n";
+  answer += "\t\t\tparseInt(timeElements[0]),\r\n";
+  answer += "\t\t\tparseInt(timeElements[1])\r\n";
+  answer += "\t\t);\r\n";
+  answer += "\t} else if (timeElements.length == 3) {\r\n";
+  answer += "\t\ttime.setHours(\r\n";
+  answer += "\t\t\tparseInt(timeElements[0]),\r\n";
+  answer += "\t\t\tparseInt(timeElements[1]),\r\n";
+  answer += "\t\t\tparseInt(timeElements[2])\r\n";
+  answer += "\t\t);\r\n";
+  answer += "\t}\r\n";
+  answer += "\tdocument.getElementById(\"time\").value = time.toLocaleTimeString();\r\n";
+  answer += "\tdocument.getElementById(\"timeset\").submit();\r\n";
+  answer += "}\r\n";
+  answer += "\r\n";
+  answer += "window.onload = function() {\r\n";
+  answer += "\tvar now = new Date();\r\n";
+  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString();\r\n";
+  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n";
+  answer += "\r\n";
+  answer += "}\r\n";
+  answer += "setInterval(set_time_values, 1000);\r\n";
+  answer += "\t\t</script>\r\n";
+  answer += "\t</head>\r\n";
+  answer += "\t<body>\r\n";
+  answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
+  answer += "\t\t<hr>\r\n";
+  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;\r\n";
+  answer += "\t\t[<a href=\"/currstate\">Текущее состояние системы</a>]</p>\r\n";
+  answer += "\t\t<hr>\r\n";
+  answer += "\t\t<p id=\"client_time\"><b>Клиентское время:</b></p>\r\n";
+  answer += "\t\t<form id=\"timeset\" method=\"post\" action=\"/autoring\">\r\n";
+  answer += "\t\t\t<input type=\"hidden\" name=\"method\" value=\"set\">\r\n";
+  answer += "\t\t\t<input type=\"hidden\" name=\"time\" id=\"time\" value=\"\">\r\n";
+  answer += "\t\t\t<input type=\"button\" value=\"Выставить время самостоятельно\" onclick=\"set_time();\">\r\n";
+  answer += "\t\t\t<input type=\"submit\" value=\"Синхронизировать время\">\r\n";
+  answer += "\t\t</form>\r\n";
+  answer += "\t</body>\r\n";
+  answer += "</html>\r\n";
 
   server.send(200, "text/html", answer);
 }
@@ -334,6 +336,7 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/autoring", handleAutoring);
   server.on("/currstate", handleCurrState);
+  server.on("/timeset", handleTimeSetPage);
   server.begin();
   set_time(0, 0, 0);
 }
