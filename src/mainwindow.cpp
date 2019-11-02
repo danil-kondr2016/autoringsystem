@@ -43,6 +43,8 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 
 #include <stdio.h>
 
+#include <QException>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -341,10 +343,10 @@ void MainWindow::saveScheduleAs()
     file_is_changed = false;
 }
 
-void MainWindow::addLastLesson()
+void MainWindow::addLessonToEnd()
 {
-    int nr = schedule->rowCount();
-    if ((nr + 1) > 15) {
+    int rc = schedule->rowCount();
+    if ((rc + 1) > 15) {
         ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
         return;
     } else {
@@ -357,15 +359,50 @@ void MainWindow::addLastLesson()
     }
 }
 
-void MainWindow::deleteLastLesson()
+void MainWindow::addLessonBefore()
 {
-    int nr = schedule->rowCount();
-    if ((nr - 1) <= 0) {
+    int rc = schedule->rowCount();
+    int current_row = ui->tableView->selectionModel()->currentIndex().row();
+    if ((rc + 1) > 15) {
+        ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
+        return;
+    } else {
+        ui->statusBar->clearMessage();
+        QList<QStandardItem*> newRow;
+        for (int i = 0; i < 3; i++)
+            newRow.append(new QStandardItem);
+        schedule->insertRow(current_row, newRow);
+        newRow.clear();
+    }
+}
+
+void MainWindow::addLessonAfter()
+{
+    int rc = schedule->rowCount();
+    int current_row = ui->tableView->selectionModel()->currentIndex().row();
+    if ((rc + 1) > 15) {
+        ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
+        return;
+    } else {
+        ui->statusBar->clearMessage();
+        QList<QStandardItem*> newRow;
+        for (int i = 0; i < 3; i++)
+            newRow.append(new QStandardItem);
+        schedule->insertRow(current_row+1, newRow);
+        newRow.clear();
+    }
+}
+
+void MainWindow::deleteLesson()
+{
+    int rc = schedule->rowCount();
+    int current_row = ui->tableView->selectionModel()->currentIndex().row();
+    if ((rc - 1) <= 0) {
         ui->statusBar->showMessage("В расписании должен быть как минимум один урок");
         return;
     } else {
         ui->statusBar->clearMessage();
-        schedule->removeRow(nr-1);
+        schedule->removeRow(current_row);
     }
 }
 
@@ -513,48 +550,22 @@ void MainWindow::invokeCalculator()
     calc->show();
 }
 
-void MainWindow::doRing()
+void MainWindow::doRings()
 {
-    bool typed;
-    int ring_delay = QInputDialog::getInt(this, "Подать звонок", "Введите продолжительность звонка в секундах", 0, 0, 60, 1, &typed);
-    if (!typed) return;
-
-    QNetworkRequest req;
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=doring&");
-    data.append("number=1&");
-    data.append("time=" + QString::number(ring_delay));
-
-    network->post(req, data);
-}
-
-void MainWindow::doManyRings()
-{
-    bool typed;
-
     int ring_number, ring_delay, ring_pause;
 
-    ring_number = QInputDialog::getInt(
-                this, "Подать несколько звонков", "Введите количество подаваемых звонков", 2,
-                0, 500, 1, &typed
-                );
-    if (!typed) return;
-    ring_delay = QInputDialog::getInt(
-                this, "Подать несколько звоноков", "Введите продолжительность одного звонка в секундах",
-                3, 0, 60, 1, &typed
-                );
-    if (!typed) return;
-    ring_pause = QInputDialog::getInt(
-                this, "Подать несколько звонков", "Введите длительность паузы между звонками", 5,
-                0, 60, 1, &typed
-                );
-    if (!typed) return;
+    RingDialog* ringDialog = new RingDialog(this);
+    ringDialog->initialize(1, 3);
+
+    if (ringDialog->exec() == QDialog::Accepted) {
+        ring_number = ringDialog->quantity;
+        ring_delay = ringDialog->time;
+        ring_pause = ringDialog->pause;
+        delete ringDialog;
+    } else {
+        delete ringDialog;
+        return;
+    }
 
     QNetworkRequest req;
 
@@ -567,9 +578,30 @@ void MainWindow::doManyRings()
     data.append("method=doring&");
     data.append(QString().sprintf("number=%d&", ring_number));
     data.append(QString().sprintf("time=%d&", ring_delay));
-    data.append(QString().sprintf("pause=%d", ring_pause));
+    if (ring_pause >= 1) {
+        data.append(QString().sprintf("pause=%d", ring_pause));
+    }
 
     network->post(req, data);
+}
+
+void MainWindow::tableViewContextMenu(QPoint position)
+{
+    QMenu *menu = new QMenu(this);
+
+    QAction *action_addBefore = new QAction("Добавить урок перед выделенным", menu);
+    QAction *action_addAfter = new QAction("Добавить урок после выделенного", menu);
+    QAction *action_deleteLesson = new QAction("Удалить выбранный урок", menu);
+
+    connect(action_addBefore, SIGNAL(triggered()), this, SLOT(addLessonBefore()));
+    connect(action_addAfter, SIGNAL(triggered()), this, SLOT(addLessonAfter()));
+    connect(action_deleteLesson, SIGNAL(triggered()), this, SLOT(deleteLesson()));
+
+    menu->addAction(action_addBefore);
+    menu->addAction(action_addAfter);
+    menu->addAction(action_deleteLesson);
+
+    menu->popup(ui->tableView->viewport()->mapToGlobal(position));
 }
 
 MainWindow::~MainWindow()

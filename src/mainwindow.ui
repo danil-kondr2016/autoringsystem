@@ -20,7 +20,11 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTableView" name="tableView"/>
+     <widget class="QTableView" name="tableView">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -66,7 +70,6 @@
     <addaction name="action_settime"/>
     <addaction name="action_synctime"/>
     <addaction name="separator"/>
-    <addaction name="action_doring"/>
     <addaction name="action_dorings"/>
    </widget>
    <addaction name="menu_file"/>
@@ -96,7 +99,6 @@
    <addaction name="separator"/>
    <addaction name="action_check"/>
    <addaction name="action_calculate"/>
-   <addaction name="action_doring"/>
    <addaction name="action_dorings"/>
   </widget>
   <action name="action_open">
@@ -164,7 +166,7 @@
      <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
    </property>
    <property name="text">
-    <string>Добавить урок</string>
+    <string>Добавить урок в конец</string>
    </property>
   </action>
   <action name="action_deletelesson">
@@ -173,10 +175,10 @@
      <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
    </property>
    <property name="text">
-    <string>Удалить последний урок</string>
+    <string>Удалить выбранный урок</string>
    </property>
    <property name="toolTip">
-    <string>Удалить последний урок</string>
+    <string>Удалить выбранный урок</string>
    </property>
   </action>
   <action name="action_saveas">
@@ -229,22 +231,13 @@
     <string>Рассчитать расписание</string>
    </property>
   </action>
-  <action name="action_doring">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/images/do_ring.png</normaloff>:/images/do_ring.png</iconset>
-   </property>
-   <property name="text">
-    <string>Дать экстренный звонок</string>
-   </property>
-  </action>
   <action name="action_dorings">
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/images/do_rings.png</normaloff>:/images/do_rings.png</iconset>
    </property>
    <property name="text">
-    <string>Подать несколько звонков</string>
+    <string>Подать один или несколько звонков</string>
    </property>
   </action>
  </widget>
@@ -305,7 +298,7 @@
    <sender>action_addlesson</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>addLastLesson()</slot>
+   <slot>addLessonToEnd()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -321,7 +314,7 @@
    <sender>action_deletelesson</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>deleteLastLesson()</slot>
+   <slot>deleteLesson()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -462,10 +455,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_doring</sender>
+   <sender>action_dorings</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>doRing()</slot>
+   <slot>doRings()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -478,18 +471,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_dorings</sender>
-   <signal>triggered()</signal>
+   <sender>tableView</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
    <receiver>MainWindow</receiver>
-   <slot>doManyRings()</slot>
+   <slot>tableViewContextMenu(QPoint)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
+     <x>217</x>
+     <y>251</y>
     </hint>
     <hint type="destinationlabel">
-     <x>259</x>
-     <y>224</y>
+     <x>516</x>
+     <y>79</y>
     </hint>
    </hints>
   </connection>
@@ -497,8 +490,8 @@
  <slots>
   <slot>loadSchedule()</slot>
   <slot>saveSchedule()</slot>
-  <slot>addLastLesson()</slot>
-  <slot>deleteLastLesson()</slot>
+  <slot>addLessonToEnd()</slot>
+  <slot>deleteLesson()</slot>
   <slot>saveScheduleAs()</slot>
   <slot>checkSchedule()</slot>
   <slot>aboutApplication()</slot>
@@ -508,6 +501,7 @@
   <slot>putTimeFromPC()</slot>
   <slot>invokeCalculator()</slot>
   <slot>doRing()</slot>
-  <slot>doManyRings()</slot>
+  <slot>doRings()</slot>
+  <slot>tableViewContextMenu(QPoint)</slot>
  </slots>
 </ui>

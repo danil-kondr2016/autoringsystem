@@ -70,6 +70,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "aboutdialog.h"
 #include "settings.h"
 #include "calculator.h"
+#include "ringdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -101,8 +102,10 @@ public Q_SLOTS:
     void downloadSchedule();
     void getScheduleFromCalculator(QStringList rows);
 
-    void addLastLesson();
-    void deleteLastLesson();
+    void addLessonToEnd();
+    void addLessonBefore();
+    void addLessonAfter();
+    void deleteLesson();
 
     void putTimeFromPC();
     void setTime();
@@ -115,8 +118,9 @@ public Q_SLOTS:
 
     void invokeCalculator();
 
-    void doRing();
-    void doManyRings();
+    void doRings();
+
+    void tableViewContextMenu(QPoint position);
 
 
 private:

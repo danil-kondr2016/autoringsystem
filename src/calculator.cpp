@@ -41,6 +41,8 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "calculator.h"
 #include "ui_calculator.h"
 
+#include <QDebug>
+
 Calculator::Calculator(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Calculator),
@@ -49,15 +51,6 @@ Calculator::Calculator(QWidget *parent) :
     ui->setupUi(this);
     breaks->setColumnCount(1);
     breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены в минутах");
-
-    int lq = ui->lesson_quantity->value();
-    QList<QStandardItem*> row;
-    for (int i = 0; i < lq; i++) {
-        row.append(new QStandardItem(QString::number(lq)));
-        breaks->appendRow(row);
-        row.clear();
-    }
-
 
     ui->break_delays->setModel(breaks);
 }

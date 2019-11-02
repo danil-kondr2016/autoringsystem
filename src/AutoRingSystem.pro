@@ -28,18 +28,21 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     aboutdialog.cpp \
+    ringdialog.cpp \
     settings.cpp \
     calculator.cpp
 
 HEADERS += \
         mainwindow.h \
     aboutdialog.h \
+    ringdialog.h \
     settings.h \
     calculator.h
 
 FORMS += \
         mainwindow.ui \
     aboutdialog.ui \
+    ringdialog.ui \
     settings.ui \
     calculator.ui
 
