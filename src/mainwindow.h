@@ -92,6 +92,8 @@ public:
 
     void closeEvent(QCloseEvent* event);
 
+    void loadScheduleFromFile(QString filename);
+
 public Q_SLOTS:
     void saveSchedule();
     void saveScheduleAs();

@@ -227,6 +227,40 @@ void MainWindow::loadSchedule()
     file_is_changed = false;
 }
 
+void MainWindow::loadScheduleFromFile(QString filename)
+{
+    ui->tableView->setModel(nullptr);
+    lesson_file = filename;
+
+    schedule->clear();
+    schedule->setColumnCount(3);
+    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
+
+    QFile file(lesson_file);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(lesson_file));
+    } else {
+        QList<QStandardItem*> row;
+        QTextStream fin(&file);
+        QString tmp;
+        while (!fin.atEnd()) {
+            tmp = fin.readLine();
+            QStringList xa = tmp.split(",");
+            for (int i = 1; i < xa.length(); i++) {
+                row.append(new QStandardItem(xa[i]));
+            }
+
+            schedule->appendRow(row);
+            row.clear();
+        }
+        file.close();
+    }
+    ui->tableView->setModel(schedule);
+    file_is_changed = false;
+}
+
+
 void MainWindow::getScheduleFromCalculator(QStringList rows)
 {
     ui->tableView->setModel(nullptr);
