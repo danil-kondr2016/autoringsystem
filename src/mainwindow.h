@@ -95,6 +95,8 @@ public:
     void loadScheduleFromFile(QString filename);
 
 public Q_SLOTS:
+    void newFile();
+
     void saveSchedule();
     void saveScheduleAs();
     void loadSchedule();
@@ -123,7 +125,6 @@ public Q_SLOTS:
     void doRings();
 
     void tableViewContextMenu(QPoint position);
-
 
 private:
     Ui::MainWindow *ui;

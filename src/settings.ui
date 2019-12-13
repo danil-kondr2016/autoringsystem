@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
+    <width>602</width>
     <height>163</height>
    </rect>
   </property>
@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="res.qrc">
-    <normaloff>:/images/autoring.ico</normaloff>:/images/autoring.ico</iconset>
+    <normaloff>:/images/options.ico</normaloff>:/images/options.ico</iconset>
   </property>
   <property name="toolTipDuration">
    <number>0</number>
@@ -81,12 +81,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>153</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>274</y>
+     <y>162</y>
     </hint>
    </hints>
   </connection>
@@ -97,12 +97,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>325</x>
+     <y>153</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
-     <y>274</y>
+     <y>162</y>
     </hint>
    </hints>
   </connection>

@@ -14,5 +14,10 @@
         <file>images/do_rings.png</file>
         <file>images/sync_time.png</file>
         <file>images/calculator.png</file>
+        <file>images/new.png</file>
+        <file>images/options.png</file>
+        <file>images/options.ico</file>
+        <file>images/add_after.png</file>
+        <file>images/add_before.png</file>
     </qresource>
 </RCC>

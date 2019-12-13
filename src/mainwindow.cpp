@@ -191,7 +191,7 @@ void MainWindow::checkSchedule()
 
 void MainWindow::loadSchedule()
 {
-    QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.csv");
+    QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.sch");
     if (filename == "") {
         return;
     } else {
@@ -260,7 +260,6 @@ void MainWindow::loadScheduleFromFile(QString filename)
     file_is_changed = false;
 }
 
-
 void MainWindow::getScheduleFromCalculator(QStringList rows)
 {
     ui->tableView->setModel(nullptr);
@@ -290,7 +289,7 @@ void MainWindow::saveSchedule()
 {
     ui->statusBar->clearMessage();
     if (!QFile::exists(lesson_file) || lesson_file == "") {
-        QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.csv");
+        QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.sch");
         if (filename == "") {
             ui->tableView->setModel(schedule);
             return;
@@ -335,7 +334,7 @@ void MainWindow::saveSchedule()
 void MainWindow::saveScheduleAs()
 {
     ui->statusBar->clearMessage();
-    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.csv");
+    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.sch");
     if (filename == "") {
         return;
     } else {
@@ -375,6 +374,29 @@ void MainWindow::saveScheduleAs()
     }
     ui->tableView->setModel(schedule);
     file_is_changed = false;
+}
+
+void MainWindow::newFile()
+{
+    int answer;
+    if (file_is_changed) {
+        answer = QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+        if (answer != QMessageBox::Cancel) {
+            if (answer == QMessageBox::Yes) {
+                saveSchedule();
+            }
+        } else {
+            return;
+        }
+    }
+
+    ui->tableView->setModel(nullptr);
+
+    schedule->clear();
+    schedule->setRowCount(1);
+    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
+
+    ui->tableView->setModel(schedule);
 }
 
 void MainWindow::addLessonToEnd()
@@ -432,8 +454,9 @@ void MainWindow::deleteLesson()
     int rc = schedule->rowCount();
     int current_row = ui->tableView->selectionModel()->currentIndex().row();
     if ((rc - 1) <= 0) {
-        ui->statusBar->showMessage("В расписании должен быть как минимум один урок");
-        return;
+        ui->statusBar->clearMessage();
+        schedule->removeRow(current_row);
+        schedule->setRowCount(1);
     } else {
         ui->statusBar->clearMessage();
         schedule->removeRow(current_row);
@@ -624,8 +647,13 @@ void MainWindow::tableViewContextMenu(QPoint position)
     QMenu *menu = new QMenu(this);
 
     QAction *action_addBefore = new QAction("Добавить урок перед выделенным", menu);
+    action_addBefore->setIcon(QIcon(":/images/add_before.png"));
+
     QAction *action_addAfter = new QAction("Добавить урок после выделенного", menu);
+    action_addAfter->setIcon(QIcon(":/images/add_after.png"));
+
     QAction *action_deleteLesson = new QAction("Удалить выбранный урок", menu);
+    action_deleteLesson->setIcon(QIcon(":/images/delete.png"));
 
     connect(action_addBefore, SIGNAL(triggered()), this, SLOT(addLessonBefore()));
     connect(action_addAfter, SIGNAL(triggered()), this, SLOT(addLessonAfter()));
