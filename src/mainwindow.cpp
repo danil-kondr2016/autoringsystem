@@ -44,7 +44,6 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include <stdio.h>
 
 #include <QException>
-#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -698,8 +697,6 @@ void MainWindow::turnOnCalculatorMode()
 
     int rc = schedule->rowCount();
 
-    qDebug() << "LESSONS";
-
     QList<QStandardItem*> lesson_column;
     QTime start, end;
     for (int row = 0, lesson_delay = 0; row < rc; row++) {
@@ -707,10 +704,7 @@ void MainWindow::turnOnCalculatorMode()
         end = schedule->index(row, 1).data().toTime();
         lesson_delay = (end.hour()*60+end.minute()) - (start.hour()*60+start.minute());
         lesson_column.append(new QStandardItem(QString::number(lesson_delay)));
-        qDebug() << lesson_delay;
     }
-
-    qDebug() << "BREAKS";
 
     QList<QStandardItem*> break_column;
     QTime start1;
@@ -719,7 +713,6 @@ void MainWindow::turnOnCalculatorMode()
         end = schedule->index(row, 1).data().toTime();
         break_delay = (start1.hour()*60+start1.minute()) - (end.hour()*60+end.minute());
         break_column.append(new QStandardItem(QString::number(break_delay)));
-        qDebug() << break_delay;
     }
     break_column.append(new QStandardItem(QString("0")));
 
@@ -830,12 +823,6 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
                        + schedule->index(rn, 0).data().toTime().minute();
         int start1_time = schedule->index(rn-1, 0).data().toTime().hour()*60
                         + schedule->index(rn-1, 0).data().toTime().minute();
-
-        qDebug() << lesson_delay
-                 << break_delay
-                 << start_time
-                 << start1_time
-                 << start_time - (start1_time+break_delay) - lesson_delay;
 
         break_delay += start_time - (start1_time+break_delay) - lesson_delay;
 
