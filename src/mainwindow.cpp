@@ -44,6 +44,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include <stdio.h>
 
 #include <QException>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -57,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 {
     ui->setupUi(this);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     schedule->setColumnCount(3);
     schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
@@ -133,33 +135,33 @@ void MainWindow::setChanged()
 
 void MainWindow::checkSchedule()
 {
-    int rowCnt = schedule->rowCount();
-    int columnCnt = schedule->columnCount();
+    int rc = schedule->rowCount();
+    int cc = schedule->columnCount();
 
     int error = 0;
     int error_num = 0;
 
-    QList<QModelIndex> row;
+    QList<QModelIndex> extracted_row;
     QTime st, et;
     QTime ost, oet;
 
-    for (int rn = 0; (rn < rowCnt) && (error == 0); rn++) {
-        for (int cn = 0; cn < columnCnt; cn++) {
-            row.append(schedule->index(rn, cn));
+    for (int row = 0; (row < rc) && (error == 0); row++) {
+        for (int column = 0; column < cc; column++) {
+            extracted_row.append(schedule->index(row, column));
         }
 
-        if ((row[0].data().toString() == "") || (row[1].data().toString() == "")) {
+        if ((extracted_row[0].data().toString() == "") || (extracted_row[1].data().toString() == "")) {
             error = 1;
-            error_num = rn + 1;
+            error_num = row + 1;
         }
 
-        st = row[0].data().toTime();
-        et = row[1].data().toTime();
+        st = extracted_row[0].data().toTime();
+        et = extracted_row[1].data().toTime();
 
         if (st > et) {
             if (error == 0) {
                 error = -1;
-                error_num = rn + 1;
+                error_num = row + 1;
             }
         }
         if ((ost > et) || (oet > st)) {
@@ -169,7 +171,7 @@ void MainWindow::checkSchedule()
         }
         ost = st;
         oet = et;
-        row.clear();
+        extracted_row.clear();
     }
 
     if (error == -2) {
@@ -191,10 +193,11 @@ void MainWindow::checkSchedule()
 
 void MainWindow::loadSchedule()
 {
-    QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.sch");
+    QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.shdl");
     if (filename == "") {
         return;
     } else {
+        turnOffCalculatorMode();
         ui->tableView->setModel(nullptr);
         lesson_file = filename;
     }
@@ -231,6 +234,8 @@ void MainWindow::loadScheduleFromFile(QString filename)
 {
     ui->tableView->setModel(nullptr);
     lesson_file = filename;
+
+    turnOffCalculatorMode();
 
     schedule->clear();
     schedule->setColumnCount(3);
@@ -289,7 +294,7 @@ void MainWindow::saveSchedule()
 {
     ui->statusBar->clearMessage();
     if (!QFile::exists(lesson_file) || lesson_file == "") {
-        QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.sch");
+        QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
         if (filename == "") {
             ui->tableView->setModel(schedule);
             return;
@@ -334,7 +339,7 @@ void MainWindow::saveSchedule()
 void MainWindow::saveScheduleAs()
 {
     ui->statusBar->clearMessage();
-    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.sch");
+    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
     if (filename == "") {
         return;
     } else {
@@ -408,11 +413,13 @@ void MainWindow::addLessonToEnd()
     } else {
         ui->statusBar->clearMessage();
         QList<QStandardItem*> newRow;
-        for (int i = 0; i < 3; i++)
+        int rc = schedule->rowCount();
+        for (int row = 0; row < rc; row++)
             newRow.append(new QStandardItem);
         schedule->appendRow(newRow);
         newRow.clear();
     }
+    if (is_calculator) recalculateSchedule();
 }
 
 void MainWindow::addLessonBefore()
@@ -425,11 +432,13 @@ void MainWindow::addLessonBefore()
     } else {
         ui->statusBar->clearMessage();
         QList<QStandardItem*> newRow;
-        for (int i = 0; i < 3; i++)
+        int rc = schedule->rowCount();
+        for (int row = 0; row < rc; row++)
             newRow.append(new QStandardItem);
         schedule->insertRow(current_row, newRow);
         newRow.clear();
     }
+    if (is_calculator) recalculateSchedule();
 }
 
 void MainWindow::addLessonAfter()
@@ -442,25 +451,27 @@ void MainWindow::addLessonAfter()
     } else {
         ui->statusBar->clearMessage();
         QList<QStandardItem*> newRow;
-        for (int i = 0; i < 3; i++)
+        int rc = schedule->rowCount();
+        for (int row = 0; row < rc; row++)
             newRow.append(new QStandardItem);
         schedule->insertRow(current_row+1, newRow);
         newRow.clear();
     }
+    if (is_calculator) recalculateSchedule();
 }
 
 void MainWindow::deleteLesson()
 {
     int rc = schedule->rowCount();
     int current_row = ui->tableView->selectionModel()->currentIndex().row();
+
+    ui->statusBar->clearMessage();
+    schedule->removeRow(current_row);
+
     if ((rc - 1) <= 0) {
-        ui->statusBar->clearMessage();
-        schedule->removeRow(current_row);
         schedule->setRowCount(1);
-    } else {
-        ui->statusBar->clearMessage();
-        schedule->removeRow(current_row);
     }
+    if (is_calculator) recalculateSchedule();
 }
 
 void MainWindow::aboutApplication()
@@ -511,6 +522,15 @@ void MainWindow::uploadSchedule()
 
 void MainWindow::downloadSchedule()
 {
+    if (is_calculator) {
+        int result = QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?");
+        if (result == QMessageBox::No) {
+            return;
+        } else if (result == QMessageBox::Yes) {
+            turnOffCalculatorMode();
+        }
+    }
+
     QNetworkRequest req;
 
     QString url = "http://" + device_ip_address + "/autoring";
@@ -664,6 +684,180 @@ void MainWindow::tableViewContextMenu(QPoint position)
     menu->addAction(action_deleteLesson);
 
     menu->popup(ui->tableView->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::turnOnCalculatorMode()
+{
+    if (is_calculator)
+        return;
+
+    ui->action_togglecm->setIcon(QIcon(":/images/simple_editing.png"));
+    ui->action_togglecm->setText("Включить режим простого редактирования");
+
+    ui->tableView->setModel(nullptr);
+
+    int rc = schedule->rowCount();
+
+    qDebug() << "LESSONS";
+
+    QList<QStandardItem*> lesson_column;
+    QTime start, end;
+    for (int row = 0, lesson_delay = 0; row < rc; row++) {
+        start = schedule->index(row, 0).data().toTime();
+        end = schedule->index(row, 1).data().toTime();
+        lesson_delay = (end.hour()*60+end.minute()) - (start.hour()*60+start.minute());
+        lesson_column.append(new QStandardItem(QString::number(lesson_delay)));
+        qDebug() << lesson_delay;
+    }
+
+    qDebug() << "BREAKS";
+
+    QList<QStandardItem*> break_column;
+    QTime start1;
+    for (int row = 0, break_delay = 0; row < rc-1; row++) {
+        start1 = schedule->index(row+1, 0).data().toTime();
+        end = schedule->index(row, 1).data().toTime();
+        break_delay = (start1.hour()*60+start1.minute()) - (end.hour()*60+end.minute());
+        break_column.append(new QStandardItem(QString::number(break_delay)));
+        qDebug() << break_delay;
+    }
+    break_column.append(new QStandardItem(QString("0")));
+
+    QList<QStandardItem*> rings_column;
+    rings_column = schedule->takeColumn(2);
+
+    schedule->setColumnCount(1);
+
+    schedule->appendColumn(lesson_column);
+    schedule->setHorizontalHeaderItem(1, new QStandardItem(QString("Длина урока (мин)")));
+
+    schedule->appendColumn(break_column);
+    schedule->setHorizontalHeaderItem(2, new QStandardItem(QString("Длина перемены (мин)")));
+
+    schedule->appendColumn(rings_column);
+    schedule->setHorizontalHeaderItem(3, new QStandardItem(QString("Особые звонки")));
+
+    disconnect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOnCalculatorMode);
+    connect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOffCalculatorMode);
+    connect(schedule, &QStandardItemModel::itemChanged, this, &MainWindow::changeBreaksAndRecalculate);
+
+    ui->tableView->setModel(schedule);
+
+    is_calculator = true;
+}
+
+void MainWindow::turnOffCalculatorMode()
+{
+    if (!is_calculator)
+        return;
+
+    ui->action_togglecm->setIcon(QIcon(":/images/calculator_mode.png"));
+    ui->action_togglecm->setText("Включить режим простого редактирования");
+
+    ui->tableView->setModel(nullptr);
+
+    QList<QStandardItem *> end_column;
+    int rc = schedule->rowCount();
+
+    int start = 0, end = 0;
+    for (int row = 0; row < rc; row++) {
+        start = schedule->index(row, 0).data().toTime().hour()*60
+              + schedule->index(row, 0).data().toTime().minute();
+        end = start + schedule->index(row, 1).data().toInt();
+        end_column.append(new QStandardItem(QTime(end/60, end%60).toString("HH:mm")));
+    }
+
+    QList<QStandardItem*> rings_column;
+    rings_column = schedule->takeColumn(3);
+
+    schedule->removeColumns(1, 2);
+
+    schedule->appendColumn(end_column);
+    schedule->setHorizontalHeaderItem(1, new QStandardItem(QString("Конец")));
+
+    schedule->appendColumn(rings_column);
+    schedule->setHorizontalHeaderItem(2, new QStandardItem(QString("Особые звонки")));
+
+    disconnect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOffCalculatorMode);
+    connect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOnCalculatorMode);
+    disconnect(schedule, &QStandardItemModel::itemChanged, this, &MainWindow::changeBreaksAndRecalculate);
+
+    ui->tableView->setModel(schedule);
+
+    is_calculator = false;
+}
+
+void MainWindow::recalculateSchedule()
+{
+    ui->tableView->setModel(nullptr);
+
+    int start;
+    int first_lesson_start =
+            schedule->index(0, 0).data().toTime().hour()*60
+          + schedule->index(0, 0).data().toTime().minute();
+
+    start = first_lesson_start;
+
+    QList<QStandardItem*> start_column;
+    start_column.append(new QStandardItem(QTime(first_lesson_start/60, first_lesson_start%60).toString("HH:mm")));
+
+    QTime start_element(0, 0);
+    int rc = schedule->rowCount();
+    for (int row = 1; row < rc; row++) {
+        start += (schedule->index(row-1, 1).data().toInt() + schedule->index(row-1, 2).data().toInt());
+        start_element = QTime(start/60, start%60);
+        start_column.append(new QStandardItem(start_element.toString("HH:mm")));
+    }
+
+    schedule->removeColumn(0);
+    schedule->insertColumn(0, start_column);
+    schedule->setHorizontalHeaderItem(0, new QStandardItem("Начало"));
+
+    ui->tableView->setModel(schedule);
+}
+
+void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
+{
+    int rn = item->row();
+    int cn = item->column();
+
+    if ((cn == 0) && (rn > 0)) {
+        ui->tableView->setModel(nullptr);
+
+        int lesson_delay = schedule->index(rn, 1).data().toInt();
+        int break_delay = schedule->index(rn-1, 2).data().toInt();
+        int start_time = schedule->index(rn, 0).data().toTime().hour()*60
+                       + schedule->index(rn, 0).data().toTime().minute();
+        int start1_time = schedule->index(rn-1, 0).data().toTime().hour()*60
+                        + schedule->index(rn-1, 0).data().toTime().minute();
+
+        qDebug() << lesson_delay
+                 << break_delay
+                 << start_time
+                 << start1_time
+                 << start_time - (start1_time+break_delay) - lesson_delay;
+
+        break_delay += start_time - (start1_time+break_delay) - lesson_delay;
+
+
+        if (break_delay <= 0) {
+            ui->tableView->setModel(schedule);
+            QMessageBox::critical(this, "Ошибка", "Перемена полностью отсутствует или пересекается с уроком");
+            return;
+        }
+
+        QList<QStandardItem*> breaks;
+        breaks = schedule->takeColumn(2);
+        breaks[rn-1] = new QStandardItem(QString::number(break_delay));
+
+        schedule->removeColumn(3);
+        schedule->insertColumn(2, breaks);
+        schedule->setHorizontalHeaderItem(2, new QStandardItem("Длина перемены (мин)"));
+
+        ui->tableView->setModel(schedule);
+    }
+
+    this->recalculateSchedule();
 }
 
 MainWindow::~MainWindow()

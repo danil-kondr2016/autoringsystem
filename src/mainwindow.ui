@@ -91,7 +91,6 @@
    <addaction name="action_new"/>
    <addaction name="action_open"/>
    <addaction name="action_save"/>
-   <addaction name="action_saveas"/>
    <addaction name="separator"/>
    <addaction name="action_download"/>
    <addaction name="action_upload"/>
@@ -101,6 +100,7 @@
    <addaction name="separator"/>
    <addaction name="action_check"/>
    <addaction name="action_calculate"/>
+   <addaction name="action_togglecm"/>
    <addaction name="action_dorings"/>
   </widget>
   <action name="action_open">
@@ -262,6 +262,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="action_togglecm">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/calculator_mode.png</normaloff>:/images/calculator_mode.png</iconset>
+   </property>
+   <property name="text">
+    <string>Включить режим калькулятора</string>
    </property>
   </action>
  </widget>
@@ -526,6 +535,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_togglecm</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>turnOnCalculatorMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loadSchedule()</slot>
@@ -544,5 +569,7 @@
   <slot>doRings()</slot>
   <slot>tableViewContextMenu(QPoint)</slot>
   <slot>newFile()</slot>
+  <slot>turnOnCalculatorMode()</slot>
+  <slot>turnOffCalculatorMode()</slot>
  </slots>
 </ui>

@@ -90,6 +90,8 @@ public:
     QString device_ip_address;
     bool time_sync;
 
+    bool is_calculator = false;
+
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
@@ -125,6 +127,12 @@ public Q_SLOTS:
     void doRings();
 
     void tableViewContextMenu(QPoint position);
+
+    void turnOnCalculatorMode();
+    void turnOffCalculatorMode();
+
+    void changeBreaksAndRecalculate(QStandardItem* item);
+    void recalculateSchedule();
 
 private:
     Ui::MainWindow *ui;

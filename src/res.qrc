@@ -19,5 +19,7 @@
         <file>images/options.ico</file>
         <file>images/add_after.png</file>
         <file>images/add_before.png</file>
+        <file>images/simple_editing.png</file>
+        <file>images/calculator_mode.png</file>
     </qresource>
 </RCC>
