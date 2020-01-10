@@ -56,5 +56,5 @@ int main(int argc, char *argv[])
     if (ret == 0) {
         session_lock.remove();
     }
-    return a.exec();
+    return ret;
 }
