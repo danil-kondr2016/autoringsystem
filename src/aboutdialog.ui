@@ -43,7 +43,10 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Программа написана на C++ с применением библиотеки Qt</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Программа написана на C++ с применением библиотеки Qt&lt;br/&gt;Адрес исходного кода: &lt;a href=&quot;https://github.com/danil-kondr2016/autoringsystem&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/danil-kondr2016/autoringsystem&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;© Кондратенко Данила, 2020&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::RichText</enum>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
