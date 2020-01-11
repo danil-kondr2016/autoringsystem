@@ -830,6 +830,7 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
         if (break_delay <= 0) {
             ui->tableView->setModel(schedule);
             QMessageBox::critical(this, "Ошибка", "Перемена полностью отсутствует или пересекается с уроком");
+            this->recalculateSchedule();
             return;
         }
 
