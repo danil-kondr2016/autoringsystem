@@ -146,7 +146,7 @@ void handleCurrState() {
   answer += "\t<body>\r\n";
   answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
   answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;"
+  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;";
   answer += "\t\t[<a href=\"/timeset\">Изменить текущее время</a>]</p>\r\n";
   answer += "\t\t<hr>\r\n";
   answer += "\t\t<p><b>Текущее время системы: </b>";
