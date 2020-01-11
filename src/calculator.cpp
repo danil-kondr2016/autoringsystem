@@ -49,8 +49,12 @@ Calculator::Calculator(QWidget *parent) :
     breaks(new QStandardItemModel)
 {
     ui->setupUi(this);
+    ui->break_delays->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
     breaks->setColumnCount(1);
-    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены в минутах");
+    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены после урока (мин)");
+
+    breaks->setRowCount(ui->lesson_quantity->value()-1);
 
     ui->break_delays->setModel(breaks);
 }
@@ -109,7 +113,7 @@ void Calculator::equalize()
 
     breaks->clear();
     breaks->setColumnCount(1);
-    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены в минутах");
+    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены после урока (мин)");
 
     int break_delay = ui->break_delay->value();
     QList<QStandardItem*> row;
@@ -136,7 +140,7 @@ void Calculator::shorten()
 
     breaks->clear();
     breaks->setColumnCount(1);
-    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены в минутах");
+    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены после урока (мин)");
 
     QList<QStandardItem*> row;
     for (int i = 0; i < brk.size(); i++) {
@@ -162,7 +166,7 @@ void Calculator::lengthen()
 
     breaks->clear();
     breaks->setColumnCount(1);
-    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены в минутах");
+    breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены после урока (мин)");
 
     QList<QStandardItem*> row;
     for (int i = 0; i < brk.size(); i++) {

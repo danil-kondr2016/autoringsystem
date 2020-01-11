@@ -4,13 +4,14 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QInputDialog>
-#include <QDebug>
 #include <QTranslator>
 #include <QLibraryInfo>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    QString fileName = QString::fromLocal8Bit(argv[1]);
 
     QTranslator translator;
     translator.load("qt_ru", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
@@ -45,11 +46,12 @@ int main(int argc, char *argv[])
 
     w.show();
 
-    if ((argc > 1) && (QFile::exists(argv[1]))) {
-        w.loadScheduleFromFile(argv[1]);
-    } else if ((argc > 1) && !(QFile::exists(argv[1]))) {
+    if ((argc > 1) && (QFile::exists(fileName))) {
+        w.loadScheduleFromFile(fileName);
+    } else if ((argc > 1) && !(QFile::exists(fileName))) {
         w.hide();
-        QMessageBox::critical(nullptr, "Ошибка", "Файла не существует");
+        QMessageBox::critical(nullptr, "Ошибка", QString("Файла %1 не существует").arg(fileName));
+        w.show();
     }
 
     int ret = a.exec();
