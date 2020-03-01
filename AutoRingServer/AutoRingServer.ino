@@ -278,6 +278,14 @@ void handleAutoring() {
         record = "";
       }
     }
+	  update_time();
+	  is_lesson = false;
+	  for (int j = 0; j < lesson_num; j++) {
+      if ((Hr * 60 + Mn) >= lessons[j * 2] && (Hr * 60 + Mn) <= lessons[j * 2 + 1]) {
+        is_lesson = true;
+        break;
+      }
+    }
   } else if (method == "doring") {
     for (int j = 0; j < rn; j++) {
       digitalWrite(ring, HIGH);

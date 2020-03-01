@@ -6,23 +6,23 @@
 #include <QInputDialog>
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
     QString fileName = QString::fromLocal8Bit(argv[1]);
-
     QTranslator translator;
     translator.load("qt_ru", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     a.installTranslator(&translator);
 
     MainWindow w;
 
-    QSettings settings("configuration.ini", QSettings::IniFormat);
+    QSettings settings(QDir::homePath() + QString(".autoringrc.ini"), QSettings::IniFormat);
     QString correct_passwd = QString(QByteArray::fromBase64(settings.value("password").toByteArray()));
 
-    QFile session_lock("session.lock");
+    QFile session_lock(QDir::homePath() + QString(".session"));
 
     QString passwd;
     bool typed;

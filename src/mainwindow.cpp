@@ -43,6 +43,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 
 #include <stdio.h>
 
+#include <QDir>
 #include <QException>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -52,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     about(new AboutDialog),
     network(new QNetworkAccessManager),
     calc(new Calculator),
-    settings(new QSettings("configuration.ini", QSettings::IniFormat)),
+    settings(new QSettings(QDir::homePath() + QString(".autoringrc.ini"), QSettings::IniFormat)),
     setwindow(new Settings)
 
 {
@@ -504,9 +505,10 @@ void MainWindow::uploadSchedule()
 
         for (int j = 0; j < cn; j++) {
             index = schedule->index(i, j);
-            if (index.data().toTime() != QTime()) {
-                QTime z = index.data().toTime();
-                x += QString().sprintf("%d.", z.hour()*60 + z.minute());
+            if (index.data().toString().split(":").length() >= 2) {
+                int hour = index.data().toString().split(":")[0].toInt();
+                int minute = index.data().toString().split(":")[1].toInt();
+                x += QString().sprintf("%d.", hour*60 + minute);
             } else {
                 x += index.data().toString();
             }
