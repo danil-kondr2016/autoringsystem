@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-    QSettings settings(QDir::homePath() + QString(".autoringrc.ini"), QSettings::IniFormat);
+    QSettings settings(QDir::homePath() + QString("/.autoringrc.ini"), QSettings::IniFormat);
     QString correct_passwd = QString(QByteArray::fromBase64(settings.value("password").toByteArray()));
 
-    QFile session_lock(QDir::homePath() + QString(".session"));
+    QFile session_lock(QDir::homePath() + QString("/.session"));
 
     QString passwd;
     bool typed;

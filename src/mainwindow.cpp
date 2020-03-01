@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     about(new AboutDialog),
     network(new QNetworkAccessManager),
     calc(new Calculator),
-    settings(new QSettings(QDir::homePath() + QString(".autoringrc.ini"), QSettings::IniFormat)),
+    settings(new QSettings(QDir::homePath() + QString("/.autoringrc.ini"), QSettings::IniFormat)),
     setwindow(new Settings)
 
 {
