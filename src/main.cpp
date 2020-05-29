@@ -6,6 +6,7 @@
 #include <QInputDialog>
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
@@ -19,10 +20,10 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-    QSettings settings("configuration.ini", QSettings::IniFormat);
+    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
     QString correct_passwd = QString(QByteArray::fromBase64(settings.value("password").toByteArray()));
 
-    QFile session_lock("session.lock");
+    QFile session_lock(QDir::homePath() + "/.session");
 
     QString passwd;
     bool typed;
