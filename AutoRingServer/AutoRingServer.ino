@@ -346,7 +346,19 @@ void handleAutoring() {
         record = "";
       }
     }
+<<<<<<< HEAD
   } else if (method == "doring" && isCorrect) {
+=======
+	  update_time();
+	  is_lesson = false;
+	  for (int j = 0; j < lesson_num; j++) {
+      if ((Hr * 60 + Mn) >= lessons[j * 2] && (Hr * 60 + Mn) <= lessons[j * 2 + 1]) {
+        is_lesson = true;
+        break;
+      }
+    }
+  } else if (method == "doring") {
+>>>>>>> 81126f9f963d3c4d67b9a3a462bdcfddfc0aff01
     for (int j = 0; j < rn; j++) {
       digitalWrite(ring, HIGH);
       delay(rt * 1000);

@@ -41,13 +41,15 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "settings.h"
 #include "ui_settings.h"
 
+#include <QDir>
+#include <QMessageBox>
+
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings),
-    settings(new QSettings("configuration.ini", QSettings::IniFormat))
+    settings(new QSettings(QDir::homePath() + QString("/.autoringrc.ini"), QSettings::IniFormat))
 {
     ui->setupUi(this);
-
     connect(this, &Settings::accepted, this, &Settings::accept);
 
     device_ip_address = settings->value("ip-address").toString();

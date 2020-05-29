@@ -1,3 +1,4 @@
 src/*.pro.user
 src/*.pro.user.*
 build*
+*.exe
