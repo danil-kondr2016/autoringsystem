@@ -41,7 +41,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
  * Серверная часть
  * 
  * Автор: Кондратенко Данила
- * Платформа: ESP8266 (ESP-12E)
+ * Платформа: ESP8266 (ESP-12E), SPIFFS = 1 МБ
  * Периферия:
  *   4 МБ flash-память (для хранения программы);
  *   реле 5В=, нормально разомкнутое.
@@ -56,8 +56,10 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include <stdio.h>
 #include <string.h>
 
+#include <FS.h>
+
 uint16_t lessons[] = {
-  510, 555, // first lesson
+  510, 555,
   565, 610,
   630, 675,
   695, 740,
@@ -74,6 +76,9 @@ uint16_t lessons[] = {
   1440, 1485
 };
 
+#define NULLPWD "NULL"
+#define PWDHASH "/PWDHASH"
+
 const int ring = 4;
 
 unsigned long Hr = 0;
@@ -83,7 +88,10 @@ unsigned long Ct = 0, St = 0;
 
 unsigned long S = 0, R;
 
-uint8_t rings[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t rings[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+String methods[] = {"set", "doring", "schedule"};
+const int nMethods = 3;
 
 int   lesson_num  = 10;
 bool  is_lesson   = false;
@@ -224,17 +232,56 @@ void handleTimeSetPage() {
 }
 
 void handleAutoring() {
-  String method, answer = "";
+  String method, answer = "", pwdhash = NULLPWD;
+
+  /* Method validation */
   for (int i = 0; i < server.args(); i++) {
     if (server.argName(i) == "method") method = server.arg(i);
+  }
+
+  bool isCorrect = false;
+  for (int i = 0; i < nMethods; i++) {
+    if (method == methods[i]) {
+      isCorrect = true;
+      break;
+    }
+  }
+
+  if (!isCorrect) {
+    answer = "state=2";
+    server.send(200, "text/plain", answer);
+    return;
+  }
+
+  /* Password validation */
+  for (int i = 0; i < server.args(); i++) {
+    if (server.argName(i) == "pwdhash") pwdhash = server.arg(i);
+  }
+
+  File hashfile = SPIFFS.open(PWDHASH, "r");
+  String correctHash;
+  char inc;
+  while (hashfile.available()) {
+    inc = hashfile.read();
+    if (inc != '\r' && inc != '\n')
+      correctHash += inc;
+    else
+      break;
+  }
+
+  hashfile.close();
+  if ((pwdhash != correctHash) && (correctHash.length() > 0)) {
+    answer = "state=1";
+    server.send(200, "text/plain", answer);
+    return;
   }
 
   int ls = 0, le = 0, rn = 0, ln = 0;
   int hour = 0, minute = 0, second = 0;
   int rt = 0, rp = 0;
 
-  String schedule;
-  for (int i = 0; i < server.args(); i++) {
+  String schedule, newHash;
+  for (int i = 0; (i < server.args()) && isCorrect; i++) {
     if (method == "set") {
       if (server.argName(i) == "schedule") {
         schedule = server.arg(i);
@@ -250,6 +297,22 @@ void handleAutoring() {
             break;
           }
         }
+      } else if (server.argName(i) == "passwd") {
+        newHash = server.arg(i);
+        hashfile = SPIFFS.open(PWDHASH, "w");
+        for (int i = 0; i < newHash.length(); i++) {
+          hashfile.write(newHash[i]);
+        }
+        hashfile.close();
+
+        hashfile = SPIFFS.open(PWDHASH, "r");
+        Serial.println("New PWDHASH:");
+        while (hashfile.available())
+          Serial.write(hashfile.read());
+        Serial.println();
+        
+      } else {
+        isCorrect = false;
       }
       answer = "state=0";
     } else if (method == "schedule") {
@@ -260,13 +323,18 @@ void handleAutoring() {
         answer += "_";
       }
     } else if (method == "doring") {
-      if (server.argName(i) == "number") rn = server.arg(i).toInt();
-      if (server.argName(i) == "time") rt = server.arg(i).toInt();
-      if (server.argName(i) == "pause") rp = server.arg(i).toInt();
+      if (server.argName(i) == "number") 
+        rn = server.arg(i).toInt();
+      else if (server.argName(i) == "time")
+        rt = server.arg(i).toInt();
+      else if (server.argName(i) == "pause")
+        rp = server.arg(i).toInt();
+      else
+        isCorrect = false;
     }
   }
 
-  if (method == "set" && schedule.length()) {
+  if (method == "set" && schedule.length() && isCorrect) {
     String record = "";
     for (int i = 0; i < schedule.length(); i++) {
       if (schedule[i] != '_') record += schedule[i];
@@ -278,7 +346,7 @@ void handleAutoring() {
         record = "";
       }
     }
-  } else if (method == "doring") {
+  } else if (method == "doring" && isCorrect) {
     for (int j = 0; j < rn; j++) {
       digitalWrite(ring, HIGH);
       delay(rt * 1000);
@@ -292,14 +360,26 @@ void handleAutoring() {
     answer = "state=0";
   }
 
+  if (!isCorrect) {
+    answer = "state=2";
+  }
+
   server.send(200, "text/plain", answer);
 }
 
 void setup() {
+  SPIFFS.begin();
   pinMode(ring, OUTPUT);
 
   Serial.begin(115200);
-  Serial.setDebugOutput(true);
+
+  Serial.println();
+  Serial.println("Contents of PWDHASH:");
+  File hashfile = SPIFFS.open(PWDHASH, "r");
+  if (!hashfile)
+    Serial.println("ERROR: file not found");
+  while (hashfile.available())
+    Serial.write(hashfile.read());
 
   Serial.println("Configuring access point...");
   
