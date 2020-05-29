@@ -45,6 +45,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QtNetwork>
 
 namespace Ui {
 class Settings;
@@ -61,7 +62,9 @@ public:
     QString device_ip_address;
     bool time_sync;
 
-    QString password;
+    QString old_password_hash, password_hash;
+    QByteArray password_salt;
+
 
 Q_SIGNALS:
     void applied();

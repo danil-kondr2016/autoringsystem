@@ -41,6 +41,8 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "settings.h"
 #include "ui_settings.h"
 
+#include "passwdtools.h"
+
 #include <QDir>
 #include <QMessageBox>
 
@@ -54,6 +56,8 @@ Settings::Settings(QWidget *parent) :
 
     device_ip_address = settings->value("ip-address").toString();
     time_sync = settings->value("time-sync").toBool();
+    password_hash = settings->value("password_hash").toByteArray();
+    password_salt = settings->value("password_salt").toByteArray();
 
     ui->ip_address->setText(device_ip_address);
     if (time_sync) {
@@ -75,9 +79,10 @@ void Settings::accept()
     } else {
         settings->setValue("sync-time", false);
     }
-    QByteArray passwd;
-    passwd.append(password);
-    settings->setValue("password", QString(passwd.toBase64()));
+
+    settings->setValue("password_hash", password_hash);
+    settings->setValue("password_salt", QString(password_salt));
+
     hide();
     emit applied();
 }
@@ -86,9 +91,8 @@ void Settings::changePassword()
 {
     bool typed;
 
-    QString correct_passwd = QString(QByteArray::fromBase64(settings->value("password").toByteArray()));
     QString old_passwd;
-    if (correct_passwd != "") {
+    if (password_hash != QString() && password_salt != QByteArray()) {
         old_passwd = QInputDialog::getText(
                     this, "Изменение пароля", "Введите старый пароль: ",
                     QLineEdit::Password, QString(), &typed
@@ -98,15 +102,33 @@ void Settings::changePassword()
         old_passwd = "";
     }
 
-    if (old_passwd != correct_passwd) {
+    QString old_passwd_hash = get_password_hash(old_passwd.toUtf8(), password_salt);
+    if ((old_passwd_hash != password_hash) && (password_hash != QByteArray() && password_salt != QByteArray())) {
         QMessageBox::critical(this, "Ошибка", "Неверный пароль");
         return;
     } else {
-        password = QInputDialog::getText(
-                    this, "Изменение пароля", "Введите новый пароль: ",
-                    QLineEdit::Password, QString(), &typed
-                    );
-        if (!typed) password = correct_passwd;
+        QString new_password, new_password2;
+        new_password = QInputDialog::getText(
+                         this, "Изменение пароля", "Введите новый пароль: ",
+                         QLineEdit::Password, QString(), &typed
+                       );
+        if (!typed) return;
+        new_password2 = QInputDialog::getText(
+                          this, "Изменение пароля", "Введите пароль ещё раз: ",
+                          QLineEdit::Password, QString(), &typed
+                        );
+        if (!typed) return;
+
+        if (new_password != new_password2) {
+            QMessageBox::critical(
+                this, "Ошибка", "Пароли не совпадают"
+            );
+            return;
+        } else {
+            old_password_hash = password_hash;
+            password_salt = generate_salt();
+            password_hash = get_password_hash(new_password.toUtf8(), password_salt);
+        }
     }
 }
 

@@ -41,6 +41,8 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "passwdtools.h"
+
 #include <stdio.h>
 
 #include <QDir>
@@ -81,6 +83,29 @@ MainWindow::MainWindow(QWidget *parent) :
     if (time_sync) putTimeFromPC();
 }
 
+QByteArray MainWindow::requestPassword()
+{
+    QString password_hash = settings->value("password_hash").toString();
+    QByteArray password_salt = settings->value("password_salt").toByteArray();
+
+    if (password_hash == QString() && password_salt == QByteArray())
+        return QByteArray();
+
+    QString password;
+
+    bool typed;
+    password = QInputDialog::getText(
+                 this, "Пароль", "Введите пароль: ",
+                 QLineEdit::Password, QString(), &typed
+               );
+
+    if (!typed) {
+        return QByteArray();
+    }
+
+    return get_password_hash(password.toUtf8(), password_salt).toUtf8();
+}
+
 void MainWindow::putTimeFromPC()
 {
     QDateTime curtime = QDateTime::currentDateTime();
@@ -104,6 +129,21 @@ void MainWindow::putTimeFromPC()
 void MainWindow::updateSettings() {
     device_ip_address = settings->value("ip-address").toString();
     time_sync = settings->value("time-sync").toBool();
+
+    QNetworkRequest req;
+
+    QString url = "http://" + device_ip_address + "/autoring";
+    req.setUrl(QUrl(url));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    QByteArray data;
+
+    data.append("method=set&pwdhash=");
+    data.append(setwindow->old_password_hash);
+    data.append("&passwd=");
+    data.append(setwindow->password_hash);
+
+    network->post(req, data);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -491,6 +531,9 @@ void MainWindow::uploadSchedule()
     QByteArray data;
 
     data.append("method=set&");
+    data.append("pwdhash=");
+    data.append(requestPassword());
+    data.append("&");
     QString x;
 
     QModelIndex index;
@@ -569,7 +612,9 @@ void MainWindow::setTime()
 
     QByteArray data;
 
-    data.append("method=set&");
+    data.append("method=set&pwdhash=");
+    data.append(requestPassword());
+    data.append("&");
     data.append(curtime_string);
 
     network->post(req, data);
@@ -616,6 +661,7 @@ void MainWindow::getResponse(QNetworkReply* rp)
                 ui->statusBar->showMessage("Расписание получено успешно");
             } else if (sx[0] == "state") {
                 if (sx[1] == "0") ui->statusBar->showMessage("Операция выполнена успешно");
+                else if (sx[1] == "1") ui->statusBar->showMessage("Неверный пароль");
             }
         }
     } else {
@@ -653,7 +699,9 @@ void MainWindow::doRings()
 
     QByteArray data;
 
-    data.append("method=doring&");
+    data.append("method=doring&pwdhash=");
+    data.append(requestPassword());
+    data.append("&");
     data.append(QString().sprintf("number=%d&", ring_number));
     data.append(QString().sprintf("time=%d&", ring_delay));
     if (ring_pause >= 1) {

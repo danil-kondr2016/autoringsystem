@@ -23,19 +23,24 @@ QByteArray generate_salt()
     return result;
 }
 
-QByteArray get_password_hash(QByteArray password, QByteArray salt)
+QString get_password_hash(QByteArray password, QByteArray salt)
 {
     QByteArray salted;
     salted.append(password);
     salted.append(salt);
 
-    QByteArray result;
-    result.append(salted);
+    QByteArray hash;
+    hash.append(salted);
 
     for (int i = 0; i < 1000; i++) {
-        result = QCryptographicHash::hash(salted, QCryptographicHash::Md5);
+        hash = QCryptographicHash::hash(salted, QCryptographicHash::Md5);
         salted.clear();
-        salted.append(result);
+        salted.append(hash);
+    }
+
+    QString result;
+    for (int i = 0; i < hash.length(); i++) {
+        result += QString::asprintf("%02hhx", (unsigned char)hash[i]);
     }
 
     return result;

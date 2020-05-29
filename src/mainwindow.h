@@ -95,6 +95,7 @@ public:
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
+    QByteArray requestPassword();
 
 public Q_SLOTS:
     void newFile();
@@ -134,7 +135,7 @@ public Q_SLOTS:
     void changeBreaksAndRecalculate(QStandardItem* item);
     void recalculateSchedule();
 
-private:
+private:    
     Ui::MainWindow *ui;
     QStandardItemModel *schedule;
     AboutDialog *about;

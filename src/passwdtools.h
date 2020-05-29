@@ -2,8 +2,9 @@
 #define PASSWDTOOLS_H
 
 #include <QByteArray>
+#include <QString>
 
 QByteArray generate_salt();
-QByteArray get_password_hash(QByteArray password, QByteArray salt);
+QString get_password_hash(QByteArray password, QByteArray salt);
 
 #endif // PASSWDTOOLS_H

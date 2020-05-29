@@ -28,6 +28,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     aboutdialog.cpp \
+    passwdtools.cpp \
     ringdialog.cpp \
     settings.cpp \
     calculator.cpp
@@ -35,6 +36,7 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
     aboutdialog.h \
+    passwdtools.h \
     ringdialog.h \
     settings.h \
     calculator.h

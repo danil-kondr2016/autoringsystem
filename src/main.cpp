@@ -8,6 +8,8 @@
 #include <QLibraryInfo>
 #include <QDir>
 
+#include "passwdtools.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -21,19 +23,23 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
-    QString correct_passwd = QString(QByteArray::fromBase64(settings.value("password").toByteArray()));
+    QByteArray password_hash = settings.value("password_hash").toByteArray();
+    QByteArray password_salt = settings.value("password_salt").toByteArray();
 
     QFile session_lock(QDir::homePath() + "/.session");
 
     QString passwd;
     bool typed;
-    if ((correct_passwd != "") && !(session_lock.exists())) {
+    if ((password_salt != QByteArray() && password_hash != QByteArray()) && !(session_lock.exists())) {
         while (true) {
             passwd = QInputDialog::getText(
                         nullptr, "Пароль", "Введите пароль системы: ", QLineEdit::Password,
                         QString(), &typed);
             if (!typed) return 0;
-            if (passwd != correct_passwd) {
+
+            QString hash = get_password_hash(passwd.toUtf8(), password_salt);
+
+            if (hash != password_hash) {
                 QMessageBox::critical(nullptr, "Ошибка", "Неверный пароль");
             } else {
                 if (session_lock.open(QIODevice::WriteOnly | QIODevice::Append)) {

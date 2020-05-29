@@ -90,9 +90,6 @@ unsigned long S = 0, R;
 
 uint8_t rings[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-String methods[] = {"set", "doring", "schedule"};
-const int nMethods = 3;
-
 int   lesson_num  = 10;
 bool  is_lesson   = false;
 
@@ -131,8 +128,7 @@ void handleRoot() {
   answer += "\t<body>\r\n";
   answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
   answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p align=\"center\">[<a href=\"/currstate\">Текущее состояние системы</a>]&nbsp;";
-  answer += "\t\t[<a href=\"/timeset\">Изменить текущее время</a>]</p>\r\n";
+  answer += "\t\t<p align=\"center\">[<a href=\"/currstate\">Текущее состояние системы</a>]";
   answer += "\t\t<hr>\r\n";
   answer += "\t\t<p align=\"center\">Создано Кондратенко Данилой в июле 2019 года.</p>\r\n";
   answer += "\t</body>\r\n";
@@ -154,8 +150,7 @@ void handleCurrState() {
   answer += "\t<body>\r\n";
   answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
   answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;";
-  answer += "\t\t[<a href=\"/timeset\">Изменить текущее время</a>]</p>\r\n";
+  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]";
   answer += "\t\t<hr>\r\n";
   answer += "\t\t<p><b>Текущее время системы: </b>";
   sprintf(buf, "%02d:%02d:%02d (%ld): ", Hr, Mn, Sc, Ct);
@@ -189,70 +184,13 @@ void handleCurrState() {
   server.send(200, "text/html", answer);
 }
 
-void handleTimeSetPage() {
-  String answer;
-
-  answer += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\r\n";
-  answer += "<html>\r\n";
-  answer += "\t<head>\r\n";
-  answer += "\t\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\r\n";
-  answer += "\t\t<title>Установка времени - Система автоматической подачи звонков</title>\r\n";
-  answer += "\t\t<script>\r\n";
-  answer += "function set_time_values() {\r\n";
-  answer += "\tvar now = new Date();\r\n";
-  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString()\r\n";
-  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n";
-  answer += "}\r\n";
-  answer += "\r\n";
-  answer += "window.onload = function() {\r\n";
-  answer += "\tvar now = new Date();\r\n";
-  answer += "\tdocument.getElementById(\"client_time\").innerHTML = \"<b>Клиентское время: </b>\" + now.toLocaleTimeString();\r\n";
-  answer += "\tdocument.getElementById(\"time\").value = now.toLocaleTimeString();\r\n";
-  answer += "\r\n";
-  answer += "}\r\n";
-  answer += "setInterval(set_time_values, 1000);\r\n";
-  answer += "\t\t</script>\r\n";
-  answer += "\t</head>\r\n";
-  answer += "\t<body>\r\n";
-  answer += "\t\t<h1 align=\"center\">Система автоматической подачи звонков</h1>\r\n";
-  answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p align=\"center\">[<a href=\"/\">На главную</a>]&nbsp;\r\n";
-  answer += "\t\t[<a href=\"/currstate\">Текущее состояние системы</a>]</p>\r\n";
-  answer += "\t\t<hr>\r\n";
-  answer += "\t\t<p id=\"client_time\"><b>Клиентское время:</b></p>\r\n";
-  answer += "\t\t<form id=\"timeset\" method=\"post\" action=\"/autoring\">\r\n";
-  answer += "\t\t\t<input type=\"hidden\" name=\"method\" value=\"set\">\r\n";
-  answer += "\t\t\t<input type=\"hidden\" name=\"time\" id=\"time\" value=\"\">\r\n";
-  answer += "\t\t\t<input type=\"submit\" value=\"Синхронизировать время\">\r\n";
-  answer += "\t\t</form>\r\n";
-  answer += "\t</body>\r\n";
-  answer += "</html>\r\n";
-
-  server.send(200, "text/html", answer);
-}
-
 void handleAutoring() {
   String method, answer = "", pwdhash = NULLPWD;
 
-  /* Method validation */
   for (int i = 0; i < server.args(); i++) {
     if (server.argName(i) == "method") method = server.arg(i);
   }
-
-  bool isCorrect = false;
-  for (int i = 0; i < nMethods; i++) {
-    if (method == methods[i]) {
-      isCorrect = true;
-      break;
-    }
-  }
-
-  if (!isCorrect) {
-    answer = "state=2";
-    server.send(200, "text/plain", answer);
-    return;
-  }
-
+  
   /* Password validation */
   for (int i = 0; i < server.args(); i++) {
     if (server.argName(i) == "pwdhash") pwdhash = server.arg(i);
@@ -270,7 +208,7 @@ void handleAutoring() {
   }
 
   hashfile.close();
-  if ((pwdhash != correctHash) && (correctHash.length() > 0)) {
+  if ((pwdhash != correctHash) && (correctHash.length() > 0) && (method != "schedule")) {
     answer = "state=1";
     server.send(200, "text/plain", answer);
     return;
@@ -281,7 +219,7 @@ void handleAutoring() {
   int rt = 0, rp = 0;
 
   String schedule, newHash;
-  for (int i = 0; (i < server.args()) && isCorrect; i++) {
+  for (int i = 0; i < server.args(); i++) {
     if (method == "set") {
       if (server.argName(i) == "schedule") {
         schedule = server.arg(i);
@@ -304,15 +242,6 @@ void handleAutoring() {
           hashfile.write(newHash[i]);
         }
         hashfile.close();
-
-        hashfile = SPIFFS.open(PWDHASH, "r");
-        Serial.println("New PWDHASH:");
-        while (hashfile.available())
-          Serial.write(hashfile.read());
-        Serial.println();
-        
-      } else {
-        isCorrect = false;
       }
       answer = "state=0";
     } else if (method == "schedule") {
@@ -329,12 +258,10 @@ void handleAutoring() {
         rt = server.arg(i).toInt();
       else if (server.argName(i) == "pause")
         rp = server.arg(i).toInt();
-      else
-        isCorrect = false;
     }
   }
 
-  if (method == "set" && schedule.length() && isCorrect) {
+  if (method == "set" && schedule.length()) {
     String record = "";
     for (int i = 0; i < schedule.length(); i++) {
       if (schedule[i] != '_') record += schedule[i];
@@ -346,9 +273,6 @@ void handleAutoring() {
         record = "";
       }
     }
-<<<<<<< HEAD
-  } else if (method == "doring" && isCorrect) {
-=======
 	  update_time();
 	  is_lesson = false;
 	  for (int j = 0; j < lesson_num; j++) {
@@ -358,7 +282,6 @@ void handleAutoring() {
       }
     }
   } else if (method == "doring") {
->>>>>>> 81126f9f963d3c4d67b9a3a462bdcfddfc0aff01
     for (int j = 0; j < rn; j++) {
       digitalWrite(ring, HIGH);
       delay(rt * 1000);
@@ -372,10 +295,6 @@ void handleAutoring() {
     answer = "state=0";
   }
 
-  if (!isCorrect) {
-    answer = "state=2";
-  }
-
   server.send(200, "text/plain", answer);
 }
 
@@ -386,13 +305,6 @@ void setup() {
   Serial.begin(115200);
 
   Serial.println();
-  Serial.println("Contents of PWDHASH:");
-  File hashfile = SPIFFS.open(PWDHASH, "r");
-  if (!hashfile)
-    Serial.println("ERROR: file not found");
-  while (hashfile.available())
-    Serial.write(hashfile.read());
-
   Serial.println("Configuring access point...");
   
   WiFi.mode(WIFI_AP);
@@ -406,7 +318,6 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/autoring", handleAutoring);
   server.on("/currstate", handleCurrState);
-  server.on("/timeset", handleTimeSetPage);
   server.begin();
   set_time(0, 0, 0);
 }
