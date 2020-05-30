@@ -46,6 +46,8 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include <QDir>
 #include <QMessageBox>
 
+#include <QDebug>
+
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings),
@@ -65,7 +67,6 @@ Settings::Settings(QWidget *parent) :
     } else {
         ui->sync_time->setCheckState(Qt::Unchecked);
     }
-
 }
 
 void Settings::accept()
@@ -74,7 +75,7 @@ void Settings::accept()
     QString ip_address = ui->ip_address->text();
     settings->clear();
     settings->setValue("ip-address", ip_address);
-    if (is_sync == 2) {
+    if (is_sync == Qt::Checked) {
         settings->setValue("sync-time", true);
     } else {
         settings->setValue("sync-time", false);
