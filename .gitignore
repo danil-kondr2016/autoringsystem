@@ -2,3 +2,7 @@ src/*.pro.user
 src/*.pro.user.*
 build*
 *.exe
+.qmake.stash
+*.o
+moc_*
+ui_*
