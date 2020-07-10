@@ -10,7 +10,7 @@ QByteArray generate_salt()
 
     QByteArray result;
 
-    std::mt19937 rnd(time(NULL));
+    std::mt19937 rnd(time(nullptr));
 
     for (int i = 0; i < 4; i++) {
         unsigned int N = rnd();
@@ -40,7 +40,7 @@ QString get_password_hash(QByteArray password, QByteArray salt)
 
     QString result;
     for (int i = 0; i < hash.length(); i++) {
-        result += QString::asprintf("%02hhx", (unsigned char)hash[i]);
+        result += QString().sprintf("%02hhx", (unsigned char)hash[i]);
     }
 
     return result;
