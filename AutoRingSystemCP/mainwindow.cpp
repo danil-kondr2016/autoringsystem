@@ -342,13 +342,6 @@ void MainWindow::saveSchedule()
             ui->tableView->setModel(schedule);
             return;
         } else {
-            if (QFile::exists(filename)) {
-                int answer = QMessageBox::warning(this, "Предупреждение",
-                                                  QString("Файл %0 существует. Вы действительно хотите его заменить?").arg(filename),
-                                                  QMessageBox::Yes | QMessageBox::No);
-                if (answer == QMessageBox::No)
-                    return;
-            }
             ui->tableView->setModel(nullptr);
             lesson_file = filename;
         }
@@ -395,13 +388,6 @@ void MainWindow::saveScheduleAs()
     if (filename == "") {
         return;
     } else {
-        if (QFile::exists(filename)) {
-            int answer = QMessageBox::warning(this, "Предупреждение",
-                                              QString("Файл %0 существует. Вы действительно хотите его заменить?").arg(filename),
-                                              QMessageBox::Yes | QMessageBox::No);
-            if (answer == QMessageBox::No)
-                return;
-        }
         ui->tableView->setModel(nullptr);
         lesson_file = filename;
     }
