@@ -332,13 +332,23 @@ void MainWindow::getScheduleFromCalculator(QStringList rows)
 
 void MainWindow::saveSchedule()
 {
+    turnOffCalculatorMode();
+
     ui->statusBar->clearMessage();
+
     if (!QFile::exists(lesson_file) || lesson_file == "") {
         QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
         if (filename == "") {
             ui->tableView->setModel(schedule);
             return;
         } else {
+            if (QFile::exists(filename)) {
+                int answer = QMessageBox::warning(this, "Предупреждение",
+                                                  QString("Файл %0 существует. Вы действительно хотите его заменить?").arg(filename),
+                                                  QMessageBox::Yes | QMessageBox::No);
+                if (answer == QMessageBox::No)
+                    return;
+            }
             ui->tableView->setModel(nullptr);
             lesson_file = filename;
         }
@@ -383,6 +393,13 @@ void MainWindow::saveScheduleAs()
     if (filename == "") {
         return;
     } else {
+        if (QFile::exists(filename)) {
+            int answer = QMessageBox::warning(this, "Предупреждение",
+                                              QString("Файл %0 существует. Вы действительно хотите его заменить?").arg(filename),
+                                              QMessageBox::Yes | QMessageBox::No);
+            if (answer == QMessageBox::No)
+                return;
+        }
         ui->tableView->setModel(nullptr);
         lesson_file = filename;
     }
@@ -665,7 +682,12 @@ void MainWindow::getResponse(QNetworkReply* rp)
             }
         }
     } else {
-        QMessageBox::critical(this, "Ошибка", QString("Произошла ошибка при обращении к устройству по адресу %0.").arg(device_ip_address));
+        if (device_ip_address != "")
+            QMessageBox::critical(this, "Ошибка",
+                                  QString("Произошла ошибка при обращении к устройству по адресу %0.").arg(device_ip_address));
+        else
+            QMessageBox::critical(this, "Ошибка",
+                                  "Адрес устройства не был указан.");
     }
 }
 
