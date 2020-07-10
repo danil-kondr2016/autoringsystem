@@ -1,9 +1,9 @@
 @echo off
 
-title –°–æ–∑–¥–∞–Ω–∏–µ –¥–∏—Å—Ç—Ä–∏–±—É—Ç–∏–≤–∞ Qt
+title ëÆß§†≠®• §®·‚‡®°„‚®¢† Qt
 
 mkdir ARS
-copy ..\src\AutoRingSystem.exe ARS
+copy ..\AutoRingSystemCP\AutoRingSystem.exe ARS
 windeployqt ARS\AutoRingSystem.exe
 
 pause

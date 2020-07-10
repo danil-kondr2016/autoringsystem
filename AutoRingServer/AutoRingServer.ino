@@ -50,6 +50,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <WiFiClient.h>
 
 #include <DNSServer.h>
@@ -97,6 +98,7 @@ const char *ssid = "Autoring";
 
 IPAddress apIP(192, 168, 4, 1);
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer updater;
 DNSServer dns;
 
 void update_time() {
@@ -318,6 +320,7 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/autoring", handleAutoring);
   server.on("/currstate", handleCurrState);
+  updater.setup(&server);
   server.begin();
   set_time(0, 0, 0);
 }
