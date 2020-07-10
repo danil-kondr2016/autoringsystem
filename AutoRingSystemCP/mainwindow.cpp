@@ -388,6 +388,8 @@ void MainWindow::saveSchedule()
 
 void MainWindow::saveScheduleAs()
 {
+    turnOffCalculatorMode();
+
     ui->statusBar->clearMessage();
     QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
     if (filename == "") {
