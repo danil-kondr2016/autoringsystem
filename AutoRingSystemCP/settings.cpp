@@ -84,8 +84,8 @@ void Settings::accept()
     settings->setValue("password_hash", password_hash);
     settings->setValue("password_salt", QString(password_salt));
 
-    hide();
     emit applied();
+    close();
 }
 
 void Settings::changePassword()

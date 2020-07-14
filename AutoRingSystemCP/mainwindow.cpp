@@ -42,6 +42,7 @@ Copyright (C) 2019 Danila Kondratenko <dan.kondratenko2013@ya.ru>
 #include "ui_mainwindow.h"
 
 #include "passwdtools.h"
+#include "scheduletools.h"
 
 #include <stdio.h>
 
@@ -175,6 +176,8 @@ void MainWindow::setChanged()
 
 void MainWindow::checkSchedule()
 {
+    turnOffCalculatorMode();
+
     int rc = schedule->rowCount();
     int cc = schedule->columnCount();
 
@@ -214,6 +217,8 @@ void MainWindow::checkSchedule()
         extracted_row.clear();
     }
 
+    turnOnCalculatorMode();
+
     if (error == -2) {
         ui->statusBar->showMessage("В расписании нарушен порядок уроков");
     } else if (error == -1) {
@@ -237,109 +242,80 @@ void MainWindow::loadSchedule()
     if (filename == "") {
         return;
     } else {
-        turnOffCalculatorMode();
-        ui->tableView->setModel(nullptr);
         lesson_file = filename;
     }
-
-    schedule->clear();
-    schedule->setColumnCount(3);
-    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
 
     QFile file(lesson_file);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(lesson_file));
     } else {
-        QList<QStandardItem*> row;
         QTextStream fin(&file);
-        QString tmp;
-        while (!fin.atEnd()) {
-            tmp = fin.readLine();
-            QStringList xa = tmp.split(",");
-            for (int i = 1; i < xa.length(); i++) {
-                row.append(new QStandardItem(xa[i]));
-            }
+        ui->tableView->setModel(nullptr);
 
-            schedule->appendRow(row);
-            row.clear();
-        }
+        if (!is_calculator)
+            schedule_to_qstdim(&schedule, csv_to_schedule(fin.readAll()));
+        else
+            cmschedule_to_qstdim(&schedule, csv_to_cmschedule(fin.readAll()));
+
+        ui->tableView->setModel(schedule);
         file.close();
     }
-    ui->tableView->setModel(schedule);
     file_is_changed = false;
 }
 
 void MainWindow::loadScheduleFromFile(QString filename)
 {
-    ui->tableView->setModel(nullptr);
     lesson_file = filename;
-
-    turnOffCalculatorMode();
-
-    schedule->clear();
-    schedule->setColumnCount(3);
-    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
 
     QFile file(lesson_file);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(lesson_file));
     } else {
-        QList<QStandardItem*> row;
         QTextStream fin(&file);
-        QString tmp;
-        while (!fin.atEnd()) {
-            tmp = fin.readLine();
-            QStringList xa = tmp.split(",");
-            for (int i = 1; i < xa.length(); i++) {
-                row.append(new QStandardItem(xa[i]));
-            }
+        ui->tableView->setModel(nullptr);
 
-            schedule->appendRow(row);
-            row.clear();
-        }
+        if (!is_calculator)
+            schedule_to_qstdim(&schedule, csv_to_schedule(fin.readAll()));
+        else
+            cmschedule_to_qstdim(&schedule, csv_to_cmschedule(fin.readAll()));
+
+        ui->tableView->setModel(schedule);
         file.close();
     }
-    ui->tableView->setModel(schedule);
+
     file_is_changed = false;
 }
 
 void MainWindow::getScheduleFromCalculator(QStringList rows)
 {
-    ui->tableView->setModel(nullptr);
-
-    schedule->clear();
-    schedule->setColumnCount(3);
-    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
-
+    Schedule sch;
     for (QString x : rows) {
-        QStringList row;
-        for (QString y : x.split(",")) row.append(y);
+        ScheduleEntry se;
+        sscanf(x.toUtf8().data(), "%02hhu:%02hhu,%02hhu:%02hhu,%hhu",
+               &se.ls_hour, &se.ls_minute,
+               &se.le_hour, &se.le_minute, &se.rings);
 
-        QList<QStandardItem*> schedRow;
-        schedRow.append(new QStandardItem(row[1]));
-        schedRow.append(new QStandardItem(row[2]));
-        schedRow.append(new QStandardItem(row[3]));
-
-        schedule->appendRow(schedRow);
-        schedRow.clear();
+        sch.append(se);
     }
 
+    ui->tableView->setModel(nullptr);
+    if (!is_calculator)
+        schedule_to_qstdim(&schedule, sch);
+    else
+        cmschedule_to_qstdim(&schedule, schedule_to_cmschedule(sch));
     ui->tableView->setModel(schedule);
     ui->statusBar->showMessage("Расписание уроков рассчитано");
 }
 
 void MainWindow::saveSchedule()
 {
-    turnOffCalculatorMode();
-
     ui->statusBar->clearMessage();
 
     if (!QFile::exists(lesson_file) || lesson_file == "") {
         QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
         if (filename == "") {
-            ui->tableView->setModel(schedule);
             return;
         } else {
             ui->tableView->setModel(nullptr);
@@ -355,24 +331,11 @@ void MainWindow::saveSchedule()
         }
     } else {
         QTextStream fout(&file);
-        QString towrite, item;
-        int rc = schedule->rowCount();
-        int cc = schedule->columnCount();
-        QModelIndex index;
-        for (int row = 0; row < rc; row++) {
-            towrite += QString::number(row+1);
-            for (int column = 0; column < cc; column++) {
-                towrite += ",";
-                index = schedule->index(row, column);
-                item = index.data().toString();
-                if (item == "") {
-                    item = "0";
-                }
-                towrite += item;
-            }
-            towrite += "\n";
-        }
-        fout << towrite;
+
+        if (!is_calculator)
+            fout << schedule_to_csv(schedule_from_qstdim(schedule));
+        else
+            fout << cmschedule_to_csv(cmschedule_from_qstdim(schedule));
         file.close();
     }
     ui->tableView->setModel(schedule);
@@ -381,8 +344,6 @@ void MainWindow::saveSchedule()
 
 void MainWindow::saveScheduleAs()
 {
-    turnOffCalculatorMode();
-
     ui->statusBar->clearMessage();
     QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
     if (filename == "") {
@@ -402,24 +363,11 @@ void MainWindow::saveScheduleAs()
         }
     } else {
         QTextStream fout(&file);
-        QString towrite, item;
-        int rc = schedule->rowCount();
-        int cc = schedule->columnCount();
-        QModelIndex index;
-        for (int row = 0; row < rc; row++) {
-            towrite += QString::number(row+1);
-            for (int column = 0; column < cc; column++) {
-                towrite += ",";
-                index = schedule->index(row, column);
-                item = index.data().toString();
-                if (item == "") {
-                    item = "0";
-                }
-                towrite += item;
-            }
-            towrite += "\n";
-        }
-        fout << towrite;
+
+        if (!is_calculator)
+            fout << schedule_to_csv(schedule_from_qstdim(schedule));
+        else
+            fout << cmschedule_to_csv(cmschedule_from_qstdim(schedule));
         file.close();
     }
     ui->tableView->setModel(schedule);
@@ -429,6 +377,16 @@ void MainWindow::saveScheduleAs()
 void MainWindow::newFile()
 {
     int answer;
+
+    if (is_calculator) {
+        answer = QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?");
+        if (answer == QMessageBox::No) {
+            return;
+        } else if (answer == QMessageBox::Yes) {
+            turnOffCalculatorMode();
+        }
+    }
+
     if (file_is_changed) {
         answer = QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
         if (answer != QMessageBox::Cancel) {
@@ -464,7 +422,11 @@ void MainWindow::addLessonToEnd()
         schedule->appendRow(newRow);
         newRow.clear();
     }
-    if (is_calculator) recalculateSchedule();
+
+    setChanged();
+
+    if (is_calculator)
+        recalculateSchedule();
 }
 
 void MainWindow::addLessonBefore()
@@ -483,7 +445,11 @@ void MainWindow::addLessonBefore()
         schedule->insertRow(current_row, newRow);
         newRow.clear();
     }
-    if (is_calculator) recalculateSchedule();
+
+    setChanged();
+
+    if (is_calculator)
+        recalculateSchedule();
 }
 
 void MainWindow::addLessonAfter()
@@ -502,7 +468,11 @@ void MainWindow::addLessonAfter()
         schedule->insertRow(current_row+1, newRow);
         newRow.clear();
     }
-    if (is_calculator) recalculateSchedule();
+
+    setChanged();
+
+    if (is_calculator)
+        recalculateSchedule();
 }
 
 void MainWindow::deleteLesson()
@@ -516,7 +486,11 @@ void MainWindow::deleteLesson()
     if ((rc - 1) <= 0) {
         schedule->setRowCount(1);
     }
-    if (is_calculator) recalculateSchedule();
+
+    setChanged();
+
+    if (is_calculator)
+        recalculateSchedule();
 }
 
 void MainWindow::aboutApplication()
@@ -540,28 +514,16 @@ void MainWindow::uploadSchedule()
     data.append(requestPassword());
     data.append("&");
     QString x;
+    Schedule sch = (!is_calculator) ? schedule_from_qstdim(schedule)
+                                    : cmschedule_to_schedule(cmschedule_from_qstdim(schedule));
 
-    QModelIndex index;
+    x += QString().sprintf("lessnum=%d&schedule=", sch.length());
 
-    int rn = schedule->rowCount();
-    int cn = schedule->columnCount();
-
-    x += QString().sprintf("lessnum=%d&schedule=", rn);
-
-    for (int i = 0; i < rn; i++) {
-        x += QString().sprintf("%d-", i+1);
-
-        for (int j = 0; j < cn; j++) {
-            index = schedule->index(i, j);
-            if (index.data().toString().split(":").length() >= 2) {
-                int hour = index.data().toString().split(":")[0].toInt();
-                int minute = index.data().toString().split(":")[1].toInt();
-                x += QString().sprintf("%d.", hour*60 + minute);
-            } else {
-                x += index.data().toString();
-            }
-        }
-        x += "_";
+    for (int i = 0; i < sch.length(); i++) {
+        x += QString().sprintf("%d-%d.%d.%d_",
+                               i+1,
+                               sch[i].ls_hour*60 + sch[i].ls_minute,
+                               sch[i].le_hour*60 + sch[i].le_minute, sch[i].rings);
     }
 
     data.append(x);
@@ -571,15 +533,6 @@ void MainWindow::uploadSchedule()
 
 void MainWindow::downloadSchedule()
 {
-    if (is_calculator) {
-        int result = QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?");
-        if (result == QMessageBox::No) {
-            return;
-        } else if (result == QMessageBox::Yes) {
-            turnOffCalculatorMode();
-        }
-    }
-
     QNetworkRequest req;
 
     QString url = "http://" + device_ip_address + "/autoring";
@@ -602,7 +555,7 @@ void MainWindow::setTime()
     bool typed;
     QString time_string = QInputDialog::getText(this, "Ввод времени", "Введите время в виде \"чч:мм:сс\"", QLineEdit::Normal, QString(), &typed);
     if (!typed) return;
-    QTime time = QTime::fromString(time_string, "HH:mm:ss");
+    QTime time = QTime::fromString(time_string, "H:mm:ss");
 
     if (time.toString() == "") return;
 
@@ -628,7 +581,6 @@ void MainWindow::setTime()
 void MainWindow::getResponse(QNetworkReply* rp)
 {
     QByteArray answer;
-    QList<QStandardItem*> row;
 
     if (rp->error() == QNetworkReply::NoError) {
         answer = rp->readAll();
@@ -637,36 +589,36 @@ void MainWindow::getResponse(QNetworkReply* rp)
             QStringList sx;
             for (QByteArray y : x.split('=')) sx.append(QByteArray::fromPercentEncoding(y));
             if (sx[0] == "schedule") {
-                ui->tableView->setModel(nullptr);
-
-                schedule->clear();
-                schedule->setColumnCount(3);
-                schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
-
+                Schedule sch;
                 QString record;
                 for (QChar x : sx[1]) {
                     if (x != '_') record += x;
                     else {
                         int ln, ls, le, rn;
                         sscanf(record.toUtf8().data(), "%d-%d.%d.%d", &ln, &ls, &le, &rn);
-                        int lsh, lsm, leh, lem;
-                        lsh = ls/60; lsm = ls % 60;
-                        leh = le/60; lem = le % 60;
+                        ScheduleEntry se;
+                        se.ls_hour = static_cast<unsigned char>(ls / 60); se.ls_minute = ls % 60;
+                        se.le_hour = static_cast<unsigned char>(le / 60); se.le_minute = le % 60;
+                        se.rings = static_cast<unsigned char>(rn);
 
-                        row.append(new QStandardItem(QString().sprintf("%02d:%02d", lsh, lsm)));
-                        row.append(new QStandardItem(QString().sprintf("%02d:%02d", leh, lem)));
-                        row.append(new QStandardItem(QString::number(rn)));
-
-                        schedule->appendRow(row);
-                        row.clear();
+                        sch.append(se);
                         record.clear();
                     }
                 }
+
+                ui->tableView->setModel(nullptr);
+                if (!is_calculator)
+                    schedule_to_qstdim(&schedule, sch);
+                else
+                    cmschedule_to_qstdim(&schedule, schedule_to_cmschedule(sch));
+
                 ui->tableView->setModel(schedule);
                 ui->statusBar->showMessage("Расписание получено успешно");
             } else if (sx[0] == "state") {
-                if (sx[1] == "0") ui->statusBar->showMessage("Операция выполнена успешно");
-                else if (sx[1] == "1") ui->statusBar->showMessage("Неверный пароль");
+                if (sx[1] == "0")
+                    ui->statusBar->showMessage("Операция выполнена успешно");
+                else if (sx[1] == "1")
+                    QMessageBox::critical(this, "Ошибка", "Неверный пароль");
             }
         }
     } else {
@@ -753,6 +705,7 @@ void MainWindow::turnOnCalculatorMode()
     ui->action_togglecm->setIcon(QIcon(":/images/simple_editing.png"));
     ui->action_togglecm->setText("Включить режим простого редактирования");
 
+    ui->tableView->setFocus();
     ui->tableView->setModel(nullptr);
 
     int rc = schedule->rowCount();
@@ -760,8 +713,8 @@ void MainWindow::turnOnCalculatorMode()
     QList<QStandardItem*> lesson_column;
     QTime start, end;
     for (int row = 0, lesson_delay = 0; row < rc; row++) {
-        start = schedule->index(row, 0).data().toTime();
-        end = schedule->index(row, 1).data().toTime();
+        start = QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm");
+        end = QTime::fromString(schedule->index(row, 1).data().toString(), "H:mm");
         lesson_delay = (end.hour()*60+end.minute()) - (start.hour()*60+start.minute());
         lesson_column.append(new QStandardItem(QString::number(lesson_delay)));
     }
@@ -805,8 +758,9 @@ void MainWindow::turnOffCalculatorMode()
         return;
 
     ui->action_togglecm->setIcon(QIcon(":/images/calculator_mode.png"));
-    ui->action_togglecm->setText("Включить режим простого редактирования");
+    ui->action_togglecm->setText("Включить режим калькулятора");
 
+    ui->tableView->setFocus();
     ui->tableView->setModel(nullptr);
 
     QList<QStandardItem *> end_column;
@@ -814,8 +768,8 @@ void MainWindow::turnOffCalculatorMode()
 
     int start = 0, end = 0;
     for (int row = 0; row < rc; row++) {
-        start = schedule->index(row, 0).data().toTime().hour()*60
-              + schedule->index(row, 0).data().toTime().minute();
+        start = QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm").hour()*60
+              + QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm").minute();
         end = start + schedule->index(row, 1).data().toInt();
         end_column.append(new QStandardItem(QTime(end/60, end%60).toString("HH:mm")));
     }
@@ -842,12 +796,13 @@ void MainWindow::turnOffCalculatorMode()
 
 void MainWindow::recalculateSchedule()
 {
+    ui->tableView->setFocus();
     ui->tableView->setModel(nullptr);
 
     int start;
     int first_lesson_start =
-            schedule->index(0, 0).data().toTime().hour()*60
-          + schedule->index(0, 0).data().toTime().minute();
+            QTime::fromString(schedule->index(0, 0).data().toString(), "H:mm").hour()*60
+          + QTime::fromString(schedule->index(0, 0).data().toString(), "H:mm").minute();
 
     start = first_lesson_start;
 
@@ -875,17 +830,17 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
     int cn = item->column();
 
     if ((cn == 0) && (rn > 0)) {
+        ui->tableView->setFocus();
         ui->tableView->setModel(nullptr);
 
         int lesson_delay = schedule->index(rn, 1).data().toInt();
         int break_delay = schedule->index(rn-1, 2).data().toInt();
-        int start_time = schedule->index(rn, 0).data().toTime().hour()*60
-                       + schedule->index(rn, 0).data().toTime().minute();
-        int start1_time = schedule->index(rn-1, 0).data().toTime().hour()*60
-                        + schedule->index(rn-1, 0).data().toTime().minute();
+        int start_time = QTime::fromString(schedule->index(rn, 0).data().toString(), "HH:mm").hour()*60
+                       + QTime::fromString(schedule->index(rn, 0).data().toString(), "HH:mm").minute();
+        int start1_time = QTime::fromString(schedule->index(rn-1, 0).data().toString(), "HH:mm").hour()*60
+                        + QTime::fromString(schedule->index(rn-1, 0).data().toString(), "HH:mm").minute();
 
         break_delay += start_time - (start1_time+break_delay) - lesson_delay;
-
 
         if (break_delay <= 0) {
             ui->tableView->setModel(schedule);

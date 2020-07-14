@@ -30,6 +30,7 @@ SOURCES += \
     aboutdialog.cpp \
     passwdtools.cpp \
     ringdialog.cpp \
+    scheduletools.cpp \
     settings.cpp \
     calculator.cpp
 
@@ -38,6 +39,7 @@ HEADERS += \
     aboutdialog.h \
     passwdtools.h \
     ringdialog.h \
+    scheduletools.h \
     settings.h \
     calculator.h
 

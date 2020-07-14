@@ -92,7 +92,7 @@ void Calculator::saveSchedule()
     QStringList rows;
     for (int i = 0; i < schedule.size(); i++) {
         rows.push_back("");
-        rows[i].sprintf("%d,%02d:%02d,%02d:%02d,0", i+1,
+        rows[i].sprintf("%02d,%02d:%02d,%02d:%02d,0", i+1,
                     schedule[i].first.hour(), schedule[i].first.minute(),
                     schedule[i].second.hour(), schedule[i].second.minute());
 
