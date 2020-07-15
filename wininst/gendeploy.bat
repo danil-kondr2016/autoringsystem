@@ -3,8 +3,8 @@
 title Создание дистрибутива Qt
 
 mkdir ARS
-copy ..\AutoRingSystemCP\AutoRingSystem.exe ARS
-windeployqt ARS\AutoRingSystem.exe
+copy ..\AutoRingSystemCP\AutoRingSystemCP.exe ARS
+windeployqt ARS\AutoRingSystemCP.exe
 
 pause
 
