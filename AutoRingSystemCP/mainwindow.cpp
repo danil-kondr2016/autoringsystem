@@ -143,6 +143,8 @@ void MainWindow::updateSettings() {
     data.append(setwindow->old_password_hash);
     data.append("&passwd=");
     data.append(setwindow->password_hash);
+    data.append("&pwdsalt=");
+    data.append(setwindow->password_salt);
 
     network->post(req, data);
 }
@@ -614,6 +616,18 @@ void MainWindow::getResponse(QNetworkReply* rp)
 
                 ui->tableView->setModel(schedule);
                 ui->statusBar->showMessage("Расписание получено успешно");
+            } else if (sx[0] == "pwdhash") {
+                QString new_hash = sx[1];
+                if (new_hash == "NULL")
+                    new_hash = "";
+
+                settings->setValue("password_hash", new_hash);
+            } else if (sx[0] == "pwdsalt") {
+                QString new_salt = sx[1];
+                if (new_salt == "NULL")
+                    new_salt = "";
+
+                settings->setValue("password_salt", new_salt);
             } else if (sx[0] == "state") {
                 if (sx[1] == "0")
                     ui->statusBar->showMessage("Операция выполнена успешно");
@@ -861,6 +875,20 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
     }
 
     this->recalculateSchedule();
+}
+
+void MainWindow::getPassword()
+{
+    QNetworkRequest req;
+
+    req.setUrl(QUrl("http://" + device_ip_address + "/autoring"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    QByteArray data;
+
+    data.append("method=password");
+
+    network->post(req, data);
 }
 
 MainWindow::~MainWindow()

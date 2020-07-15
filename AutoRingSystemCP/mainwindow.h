@@ -135,6 +135,8 @@ public Q_SLOTS:
     void changeBreaksAndRecalculate(QStandardItem* item);
     void recalculateSchedule();
 
+    void getPassword();
+
 private:    
     Ui::MainWindow *ui;
     QStandardItemModel *schedule;

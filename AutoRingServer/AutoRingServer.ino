@@ -79,6 +79,7 @@ uint16_t lessons[] = {
 
 #define NULLPWD "NULL"
 #define PWDHASH "/PWDHASH"
+#define PWDSALT "/PWDSALT"
 
 const int ring = 4;
 
@@ -193,12 +194,12 @@ void handleAutoring() {
     if (server.argName(i) == "method") method = server.arg(i);
   }
   
-  /* Password validation */
   for (int i = 0; i < server.args(); i++) {
     if (server.argName(i) == "pwdhash") pwdhash = server.arg(i);
   }
 
   File hashfile = SPIFFS.open(PWDHASH, "r");
+  File saltfile;
   String correctHash;
   char inc;
   while (hashfile.available()) {
@@ -210,7 +211,7 @@ void handleAutoring() {
   }
 
   hashfile.close();
-  if ((pwdhash != correctHash) && (correctHash.length() > 0) && (method != "schedule")) {
+  if ((pwdhash != correctHash) && (correctHash.length() > 0) && (method == "set" || method == "doring")) {
     answer = "state=1";
     server.send(200, "text/plain", answer);
     return;
@@ -220,7 +221,7 @@ void handleAutoring() {
   int hour = 0, minute = 0, second = 0;
   int rt = 0, rp = 0;
 
-  String schedule, newHash;
+  String schedule, newHash, newSalt;
   for (int i = 0; i < server.args(); i++) {
     if (method == "set") {
       if (server.argName(i) == "schedule") {
@@ -244,6 +245,13 @@ void handleAutoring() {
           hashfile.write(newHash[i]);
         }
         hashfile.close();
+      } else if (server.argName(i) == "pwdsalt") {
+        newSalt = server.arg(i);
+        saltfile = SPIFFS.open(PWDSALT, "w");
+        for (int i = 0; i < newSalt.length(); i++) {
+          saltfile.write(newSalt[i]);
+        }
+        saltfile.close();
       }
       answer = "state=0";
     } else if (method == "schedule") {
@@ -260,6 +268,19 @@ void handleAutoring() {
         rt = server.arg(i).toInt();
       else if (server.argName(i) == "pause")
         rp = server.arg(i).toInt();
+    } else if (method == "password") {
+      saltfile = SPIFFS.open(PWDSALT, "r");
+      answer = "pwdhash=";
+      answer += correctHash;
+      answer += "&pwdsalt=";
+      while (saltfile.available()) {
+        char inc = saltfile.read();
+        if (inc != '\r' && inc != '\n')
+          answer += inc;
+        else
+          break;
+      }
+      answer += "&state=0";
     }
   }
 

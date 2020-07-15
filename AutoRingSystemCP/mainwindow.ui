@@ -34,7 +34,7 @@
      <x>0</x>
      <y>0</y>
      <width>520</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -67,6 +67,7 @@
     <addaction name="action_check"/>
     <addaction name="separator"/>
     <addaction name="action_settings"/>
+    <addaction name="action_requestpassword"/>
     <addaction name="action_calculate"/>
     <addaction name="action_settime"/>
     <addaction name="action_synctime"/>
@@ -271,6 +272,11 @@
    </property>
    <property name="text">
     <string>Включить режим калькулятора</string>
+   </property>
+  </action>
+  <action name="action_requestpassword">
+   <property name="text">
+    <string>Запросить пароль системы</string>
    </property>
   </action>
  </widget>
@@ -551,6 +557,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>action_requestpassword</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>getPassword()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>259</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loadSchedule()</slot>
@@ -571,5 +593,6 @@
   <slot>newFile()</slot>
   <slot>turnOnCalculatorMode()</slot>
   <slot>turnOffCalculatorMode()</slot>
+  <slot>getPassword()</slot>
  </slots>
 </ui>
