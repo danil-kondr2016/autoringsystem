@@ -366,6 +366,7 @@ void loop() {
       digitalWrite(ring, HIGH);
       delay(3000);
       digitalWrite(ring, LOW);
+      delay(1000);
       if (rings[i] != 0) {
         for (int j = 0; j < rings[i]; j++) {
           digitalWrite(ring, HIGH);
