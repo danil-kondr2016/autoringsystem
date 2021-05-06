@@ -5,7 +5,7 @@
 #define MyAppVersion "1.0"
 #define MyAppPublisher "Кондратенко Данила"
 #define MyAppURL "https://github.com/danil-kondr2016/autoringsystem"
-#define MyAppExeName "AutoRingSystem.exe"
+#define MyAppExeName "AutoRingSystemCP.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -18,7 +18,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\AutoRingSystem
+DefaultDirName={autopf}\AutoRingSystemCP
 DisableProgramGroupPage=yes
 ; The [Icons] "quicklaunchicon" entry uses {userappdata} but its [Tasks] entry has a proper IsAdminInstallMode Check.
 UsedUserAreasWarning=no
@@ -26,7 +26,7 @@ LicenseFile=.\mit.rtf
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=autoringsystem
+OutputBaseFilename=autoringsystemcp
 SetupIconFile=.\autoring.ico
 Compression=lzma
 SolidCompression=yes
@@ -52,7 +52,7 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-Root: HKCR; Subkey: ".shdl"; ValueType: string; ValueName: ""; ValueData: "AutoRingSystem"; Flags: uninsdeletevalue
-Root: HKCR; Subkey: "AutoRingSystem"; ValueType: string; ValueName: ""; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "AutoRingSystem\DefaultIcon"; ValueType: string; ValueName: ""; ValueData:"{autopf}\AutoRingSystem\AutoRingSystem.exe,1"
-Root: HKCR; Subkey: "AutoRingSystem\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{autopf}\AutoRingSystem\AutoRingSystem.exe"" ""%1"""
+Root: HKCR; Subkey: ".shdl"; ValueType: string; ValueName: ""; ValueData: "AutoRingSystemCP"; Flags: uninsdeletevalue
+Root: HKCR; Subkey: "AutoRingSystemCP"; ValueType: string; ValueName: ""; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "AutoRingSystemCP\DefaultIcon"; ValueType: string; ValueName: ""; ValueData:"{autopf}\AutoRingSystemCP\AutoRingSystemCP.exe,1"
+Root: HKCR; Subkey: "AutoRingSystemCP\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{autopf}\AutoRingSystemCP\AutoRingSystemCP.exe"" ""%1"""

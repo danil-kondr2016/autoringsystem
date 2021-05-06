@@ -47,7 +47,10 @@ compile_commands.json
 # QtCreator local machine specific files for imported projects
 *creator.user*
 
+# Repository specific
 .directory
 
 AutoRingSystemCP/AutoRingSystemCP
 *.shdl
+
+AutoRingServer/build
