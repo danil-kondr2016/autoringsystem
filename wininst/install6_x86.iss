@@ -22,7 +22,7 @@ DefaultDirName={autopf}\AutoRingSystem
 DisableProgramGroupPage=yes
 ; The [Icons] "quicklaunchicon" entry uses {userappdata} but its [Tasks] entry has a proper IsAdminInstallMode Check.
 UsedUserAreasWarning=no
-LicenseFile=.\gpl-3.0.rtf
+LicenseFile=.\mit.rtf
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=.
