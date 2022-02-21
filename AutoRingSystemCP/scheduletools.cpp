@@ -134,7 +134,7 @@ Schedule csv_to_schedule(QString csv)
     Schedule sch;
 
     for (QString row : rows) {
-        if (row == QString())
+        if (row.isEmpty())
             break;
 
         ScheduleEntry se;

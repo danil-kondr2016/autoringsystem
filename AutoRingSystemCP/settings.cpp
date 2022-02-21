@@ -53,7 +53,7 @@ void Settings::changePassword()
     bool typed;
 
     QString old_passwd;
-    if (password_hash != QString() && password_salt != QByteArray()) {
+    if (!password_hash.isEmpty() && !password_salt.isEmpty()) {
         old_passwd = QInputDialog::getText(
                     this, "Изменение пароля", "Введите старый пароль: ",
                     QLineEdit::Password, QString(), &typed
@@ -64,7 +64,7 @@ void Settings::changePassword()
     }
 
     QString old_passwd_hash = get_password_hash(old_passwd.toUtf8(), password_salt);
-    if ((old_passwd_hash != password_hash) && (password_hash != QByteArray() && password_salt != QByteArray())) {
+    if ((old_passwd_hash != password_hash) && (!password_hash.isEmpty() && !password_salt.isEmpty())) {
         QMessageBox::critical(this, "Ошибка", "Неверный пароль");
         return;
     } else {

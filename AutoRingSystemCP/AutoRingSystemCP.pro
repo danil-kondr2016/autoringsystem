@@ -35,6 +35,7 @@ SOURCES += \
     calculator.cpp
 
 HEADERS += \
+    constants.h \
         mainwindow.h \
     aboutdialog.h \
     passwdtools.h \

@@ -49,7 +49,7 @@ QByteArray MainWindow::requestPassword()
     QString password_hash = settings->value("password_hash").toString();
     QByteArray password_salt = settings->value("password_salt").toByteArray();
 
-    if (password_hash == QString() && password_salt == QByteArray())
+    if (password_hash.isEmpty() && password_salt.isEmpty())
         return QByteArray();
 
     QString password;
@@ -155,7 +155,7 @@ void MainWindow::checkSchedule()
             extracted_row.append(schedule->index(row, column));
         }
 
-        if ((extracted_row[0].data().toString() == "") || (extracted_row[1].data().toString() == "")) {
+        if ((extracted_row[0].data().toString().isEmpty()) || (extracted_row[1].data().toString().isEmpty())) {
             error = 1;
             error_num = row + 1;
         }
@@ -365,11 +365,11 @@ void MainWindow::newFile()
     ui->tableView->setModel(schedule);
 }
 
-void MainWindow::addLessonToEnd()
+void MainWindow::addLesson(int row)
 {
     int rc = schedule->rowCount();
-    if ((rc + 1) > 15) {
-        ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
+    if ((rc + 1) > MAX_LESSONS) {
+        ui->statusBar->showMessage(QString("В расписании не может быть более %0 уроков").arg(MAX_LESSONS));
         return;
     } else {
         ui->statusBar->clearMessage();
@@ -377,7 +377,10 @@ void MainWindow::addLessonToEnd()
         int rc = schedule->rowCount();
         for (int row = 0; row < rc; row++)
             newRow.append(new QStandardItem);
-        schedule->appendRow(newRow);
+        if (row == -1)
+            schedule->appendRow(newRow);
+        else
+            schedule->insertRow(row, newRow);
         newRow.clear();
     }
 
@@ -385,52 +388,23 @@ void MainWindow::addLessonToEnd()
 
     if (is_calculator)
         recalculateSchedule();
+}
+
+void MainWindow::addLessonToEnd()
+{
+    addLesson(-1);
 }
 
 void MainWindow::addLessonBefore()
 {
-    int rc = schedule->rowCount();
     int current_row = ui->tableView->selectionModel()->currentIndex().row();
-    if ((rc + 1) > 15) {
-        ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
-        return;
-    } else {
-        ui->statusBar->clearMessage();
-        QList<QStandardItem*> newRow;
-        int rc = schedule->rowCount();
-        for (int row = 0; row < rc; row++)
-            newRow.append(new QStandardItem);
-        schedule->insertRow(current_row, newRow);
-        newRow.clear();
-    }
-
-    setChanged();
-
-    if (is_calculator)
-        recalculateSchedule();
+    addLesson(current_row);
 }
 
 void MainWindow::addLessonAfter()
 {
-    int rc = schedule->rowCount();
     int current_row = ui->tableView->selectionModel()->currentIndex().row();
-    if ((rc + 1) > 15) {
-        ui->statusBar->showMessage("В расписании не может быть более 15 уроков");
-        return;
-    } else {
-        ui->statusBar->clearMessage();
-        QList<QStandardItem*> newRow;
-        int rc = schedule->rowCount();
-        for (int row = 0; row < rc; row++)
-            newRow.append(new QStandardItem);
-        schedule->insertRow(current_row+1, newRow);
-        newRow.clear();
-    }
-
-    setChanged();
-
-    if (is_calculator)
-        recalculateSchedule();
+    addLesson(current_row+1);
 }
 
 void MainWindow::deleteLesson()
@@ -512,7 +486,7 @@ void MainWindow::setTime()
     if (!typed) return;
     QTime time = QTime::fromString(time_string, "H:mm:ss");
 
-    if (time.toString() == "") return;
+    if (time.toString().isEmpty()) return;
 
     QString curtime_string = "time=";
     curtime_string += time.toString("HH:mm:ss").replace(":", "%3A");

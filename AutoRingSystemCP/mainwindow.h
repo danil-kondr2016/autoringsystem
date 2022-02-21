@@ -1,6 +1,8 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "constants.h"
+
 #include <QMainWindow>
 
 #include <QDateTime>
@@ -69,6 +71,7 @@ public Q_SLOTS:
     void downloadSchedule();
     void getScheduleFromCalculator(QStringList rows);
 
+    void addLesson(int row);
     void addLessonToEnd();
     void addLessonBefore();
     void addLessonAfter();
