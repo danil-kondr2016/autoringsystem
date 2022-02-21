@@ -88,9 +88,13 @@ CalcModeSchedule schedule_to_cmschedule(Schedule sch) {
 QString se_to_csv(ScheduleEntry se)
 {
     QString result;
-    result.sprintf("%02hhu:%02hhu,%02hhu:%02hhu,%d",
-                   se.ls_hour, se.ls_minute,
-                   se.le_hour, se.le_minute, se.rings);
+
+    result = QString("%1:%2,%3:%4,%5")
+            .arg(QString::number(se.ls_hour), 2, '0')
+            .arg(QString::number(se.ls_minute), 2, '0')
+            .arg(QString::number(se.le_hour), 2, '0')
+            .arg(QString::number(se.le_minute), 2, '0')
+            .arg(se.rings);
 
     return result;
 }
@@ -207,8 +211,12 @@ void schedule_to_qstdim(QStandardItemModel** model, Schedule sch)
 
     QList<QStandardItem*> row;
     for (int i = 0; i < sch.length(); i++) {
-        row.append(new QStandardItem(QString().sprintf("%02hhu:%02hhu", sch[i].ls_hour, sch[i].ls_minute)));
-        row.append(new QStandardItem(QString().sprintf("%02hhu:%02hhu", sch[i].le_hour, sch[i].le_minute)));
+        row.append(new QStandardItem(QString("%1:%2")
+                                     .arg(QString::number(sch[i].ls_hour), 2, '0')
+                                     .arg(QString::number(sch[i].ls_minute), 2, '0')));
+        row.append(new QStandardItem(QString("%1:%2")
+                                     .arg(QString::number(sch[i].le_hour), 2, '0')
+                                     .arg(QString::number(sch[i].le_minute), 2, '0')));
         row.append(new QStandardItem(QString::number(sch[i].rings)));
 
         (*model)->appendRow(row);
@@ -224,7 +232,9 @@ void cmschedule_to_qstdim(QStandardItemModel** model, CalcModeSchedule cmsch)
 
     QList<QStandardItem*> row;
     for (int i = 0; i < cmsch.length(); i++) {
-        row.append(new QStandardItem(QString().sprintf("%02hhu:%02hhu", cmsch[i].ls_hour, cmsch[i].ls_minute)));
+        row.append(new QStandardItem(QString("%1:%2")
+                                     .arg(QString::number(cmsch[i].ls_hour), 2, '0')
+                                     .arg(QString::number(cmsch[i].ls_minute), 2, '0')));
         row.append(new QStandardItem(QString::number(cmsch[i].lesson_delay)));
         row.append(new QStandardItem(QString::number(cmsch[i].break_delay)));
         row.append(new QStandardItem(QString::number(cmsch[i].rings)));

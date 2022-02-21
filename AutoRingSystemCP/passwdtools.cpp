@@ -40,7 +40,7 @@ QString get_password_hash(QByteArray password, QByteArray salt)
 
     QString result;
     for (int i = 0; i < hash.length(); i++) {
-        result += QString().sprintf("%02hhx", (unsigned char)hash[i]);
+        result.append(QString::number(hash[i], 16).toUtf8());
     }
 
     return result;

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <QtGlobal>
 #include <QApplication>
 #include <QSettings>
 #include <QMessageBox>
@@ -10,6 +11,12 @@
 
 #include "passwdtools.h"
 
+#if (QT_VERSION >= 0x060000)
+#define QLIBRARYINFO_PATH QLibraryInfo::path
+#else
+#define QLIBRARYINFO_PATH QLibraryInfo::location
+#endif
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -17,8 +24,12 @@ int main(int argc, char *argv[])
     QString fileName = QString::fromLocal8Bit(argv[1]);
 
     QTranslator translator;
-    translator.load("qt_ru", QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-    a.installTranslator(&translator);
+    if (translator.load("qt_ru", QLIBRARYINFO_PATH(QLibraryInfo::TranslationsPath)))
+        a.installTranslator(&translator);
+    else {
+        QMessageBox::critical(nullptr, "Error", "Translations have not been loaded");
+        return -1;
+    }
 
     MainWindow w;
 

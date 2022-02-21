@@ -51,11 +51,13 @@ void Calculator::saveSchedule()
 
     QStringList rows;
     for (int i = 0; i < schedule.size(); i++) {
-        rows.push_back("");
-        rows[i].sprintf("%02d,%02d:%02d,%02d:%02d,0", i+1,
-                    schedule[i].first.hour(), schedule[i].first.minute(),
-                    schedule[i].second.hour(), schedule[i].second.minute());
-
+        rows.push_back("%1,%2:%3,%4:%5,0");
+        rows[i] = rows[i]
+                .arg(QString::number(i+1), 2, '0')
+                .arg(QString::number(schedule[i].first.hour()), 2, '0')
+                .arg(QString::number(schedule[i].first.minute()), 2, '0')
+                .arg(QString::number(schedule[i].second.hour()), 2, '0')
+                .arg(QString::number(schedule[i].second.minute()), 2, '0');
     }
 
     emit scheduleMade(rows);

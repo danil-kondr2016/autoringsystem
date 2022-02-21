@@ -82,7 +82,7 @@ void MainWindow::putTimeFromPC()
     QByteArray data;
 
     data.append("method=set&");
-    data.append(curtime_string);
+    data.append(curtime_string.toUtf8());
 
     network->post(req, data);
 }
@@ -100,9 +100,9 @@ void MainWindow::updateSettings() {
     QByteArray data;
 
     data.append("method=set&pwdhash=");
-    data.append(setwindow->old_password_hash);
+    data.append(setwindow->old_password_hash.toUtf8());
     data.append("&passwd=");
-    data.append(setwindow->password_hash);
+    data.append(setwindow->password_hash.toUtf8());
     data.append("&pwdsalt=");
     data.append(setwindow->password_salt);
 
@@ -185,16 +185,12 @@ void MainWindow::checkSchedule()
         ui->statusBar->showMessage("В расписании нарушен порядок уроков");
     } else if (error == -1) {
         ui->statusBar->showMessage(
-                    QString().sprintf(
-                        "Урок %d: конец урока раньше его начала", error_num
-                        ));
+                    QString("Урок %0: конец урока раньше его начала").arg(error_num));
     } else if (error == 0) {
         ui->statusBar->showMessage("Расписание составлено правильно");
     } else if (error == 1) {
         ui->statusBar->showMessage(
-                    QString().sprintf(
-                        "Урок %d: отсутствуют временные границы", error_num
-                        ));
+                    QString("Урок %0: отсутствуют временные границы").arg(error_num));
     }
 }
 
@@ -479,16 +475,16 @@ void MainWindow::uploadSchedule()
     Schedule sch = (!is_calculator) ? schedule_from_qstdim(schedule)
                                     : cmschedule_to_schedule(cmschedule_from_qstdim(schedule));
 
-    x += QString().sprintf("lessnum=%d&schedule=", sch.length());
+    x += QString("lessnum=%0&schedule=").arg(sch.length());
 
     for (int i = 0; i < sch.length(); i++) {
-        x += QString().sprintf("%d-%d.%d.%d_",
-                               i+1,
-                               sch[i].ls_hour*60 + sch[i].ls_minute,
-                               sch[i].le_hour*60 + sch[i].le_minute, sch[i].rings);
+        x += QString("%0-%1.%2.%3_")
+                .arg(i+1)
+                .arg(sch[i].ls_hour*60 + sch[i].ls_minute)
+                .arg(sch[i].le_hour*60 + sch[i].le_minute, sch[i].rings);
     }
 
-    data.append(x);
+    data.append(x.toUtf8());
 
     network->post(req, data);
 }
@@ -504,9 +500,6 @@ void MainWindow::downloadSchedule()
     QByteArray data;
 
     data.append("method=schedule");
-
-    QByteArray answer;
-    QList<QStandardItem*> row;
 
     network->post(req, data);
     file_is_changed = true;
@@ -535,7 +528,7 @@ void MainWindow::setTime()
     data.append("method=set&pwdhash=");
     data.append(requestPassword());
     data.append("&");
-    data.append(curtime_string);
+    data.append(curtime_string.toUtf8());
 
     network->post(req, data);
 }
@@ -638,10 +631,10 @@ void MainWindow::doRings()
     data.append("method=doring&pwdhash=");
     data.append(requestPassword());
     data.append("&");
-    data.append(QString().sprintf("number=%d&", ring_number));
-    data.append(QString().sprintf("time=%d&", ring_delay));
+    data.append(QString("number=%0&").arg(ring_number).toUtf8());
+    data.append(QString("time=%0").arg(ring_delay).toUtf8());
     if (ring_pause >= 1) {
-        data.append(QString().sprintf("pause=%d", ring_pause));
+        data.append(QString("&pause=%0").arg(ring_pause).toUtf8());
     }
 
     network->post(req, data);
