@@ -5,7 +5,9 @@
 #include "scheduletools.h"
 
 #include <stdio.h>
+#include <algorithm>
 
+#include <QDebug>
 #include <QDir>
 #include <QException>
 
@@ -65,6 +67,16 @@ QByteArray MainWindow::requestPassword()
     }
 
     return get_password_hash(password.toUtf8(), password_salt).toUtf8();
+}
+
+QString MainWindow::askForSaveFileName()
+{
+    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
+
+    if (!filename.endsWith(".shdl"))
+        filename += ".shdl";
+
+    return filename;
 }
 
 void MainWindow::putTimeFromPC()
@@ -138,7 +150,10 @@ void MainWindow::setChanged()
 
 void MainWindow::checkSchedule()
 {
-    turnOffCalculatorMode();
+    bool was_calculator = is_calculator;
+
+    if (was_calculator)
+        turnOffCalculatorMode();
 
     int rc = schedule->rowCount();
     int cc = schedule->columnCount();
@@ -179,7 +194,8 @@ void MainWindow::checkSchedule()
         extracted_row.clear();
     }
 
-    turnOnCalculatorMode();
+    if (was_calculator)
+        turnOnCalculatorMode();
 
     if (error == -2) {
         ui->statusBar->showMessage("В расписании нарушен порядок уроков");
@@ -271,9 +287,9 @@ void MainWindow::saveSchedule()
 {
     ui->statusBar->clearMessage();
 
-    if (!QFile::exists(lesson_file) || lesson_file == "") {
-        QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
-        if (filename == "") {
+    if (!QFile::exists(lesson_file) || lesson_file.isEmpty()) {
+        QString filename = askForSaveFileName();
+        if (filename.isEmpty()) {
             return;
         } else {
             ui->tableView->setModel(nullptr);
@@ -303,8 +319,8 @@ void MainWindow::saveSchedule()
 void MainWindow::saveScheduleAs()
 {
     ui->statusBar->clearMessage();
-    QString filename = QFileDialog::getSaveFileName(this, QString(), QString(), "*.shdl");
-    if (filename == "") {
+    QString filename = askForSaveFileName();
+    if (filename.isEmpty()) {
         return;
     } else {
         ui->tableView->setModel(nullptr);
@@ -365,24 +381,27 @@ void MainWindow::newFile()
     ui->tableView->setModel(schedule);
 }
 
-void MainWindow::addLesson(int row)
+void MainWindow::addLesson(int l)
 {
     int rc = schedule->rowCount();
+    int cc = schedule->columnCount();
+
     if ((rc + 1) > MAX_LESSONS) {
         ui->statusBar->showMessage(QString("В расписании не может быть более %0 уроков").arg(MAX_LESSONS));
         return;
-    } else {
-        ui->statusBar->clearMessage();
-        QList<QStandardItem*> newRow;
-        int rc = schedule->rowCount();
-        for (int row = 0; row < rc; row++)
-            newRow.append(new QStandardItem);
-        if (row == -1)
-            schedule->appendRow(newRow);
-        else
-            schedule->insertRow(row, newRow);
-        newRow.clear();
     }
+
+    ui->statusBar->clearMessage();
+    QList<QStandardItem*> newRow;
+
+    for (int column = 0; column < cc; column++)
+        newRow.append(new QStandardItem);
+    if (l == -1)
+        schedule->appendRow(newRow);
+    else
+        schedule->insertRow(l, newRow);
+    newRow.clear();
+
 
     setChanged();
 
@@ -407,13 +426,12 @@ void MainWindow::addLessonAfter()
     addLesson(current_row+1);
 }
 
-void MainWindow::deleteLesson()
+void MainWindow::deleteLesson(int l)
 {
     int rc = schedule->rowCount();
-    int current_row = ui->tableView->selectionModel()->currentIndex().row();
 
     ui->statusBar->clearMessage();
-    schedule->removeRow(current_row);
+    schedule->removeRow(l);
 
     if ((rc - 1) <= 0) {
         schedule->setRowCount(1);
@@ -423,6 +441,23 @@ void MainWindow::deleteLesson()
 
     if (is_calculator)
         recalculateSchedule();
+}
+
+void MainWindow::deleteSelectedLesson()
+{
+    QSet<int> lessons_set;
+
+    auto indexes = ui->tableView->selectionModel()->selectedIndexes();
+    for (auto index : indexes) {
+        lessons_set.insert(index.row());
+    }
+
+    QList<int> lessons = lessons_set.values();
+    std::sort(lessons.begin(), lessons.end());
+
+    for (int i = lessons.length() - 1; i >= 0; i--) {
+        deleteLesson(lessons[i]);
+    }
 }
 
 void MainWindow::aboutApplication()
@@ -455,7 +490,8 @@ void MainWindow::uploadSchedule()
         x += QString("%0-%1.%2.%3_")
                 .arg(i+1)
                 .arg(sch[i].ls_hour*60 + sch[i].ls_minute)
-                .arg(sch[i].le_hour*60 + sch[i].le_minute, sch[i].rings);
+                .arg(sch[i].le_hour*60 + sch[i].le_minute)
+                .arg(sch[i].rings);
     }
 
     data.append(x.toUtf8());
@@ -629,7 +665,7 @@ void MainWindow::tableViewContextMenu(QPoint position)
 
     connect(action_addBefore, SIGNAL(triggered()), this, SLOT(addLessonBefore()));
     connect(action_addAfter, SIGNAL(triggered()), this, SLOT(addLessonAfter()));
-    connect(action_deleteLesson, SIGNAL(triggered()), this, SLOT(deleteLesson()));
+    connect(action_deleteLesson, SIGNAL(triggered()), this, SLOT(deleteSelectedLesson()));
 
     menu->addAction(action_addBefore);
     menu->addAction(action_addAfter);

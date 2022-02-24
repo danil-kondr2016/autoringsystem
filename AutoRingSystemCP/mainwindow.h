@@ -54,10 +54,14 @@ public:
 
     bool is_calculator = false;
 
+    QString askForSaveFileName();
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
     QByteArray requestPassword();
+
+    void addLesson(int l);
+    void deleteLesson(int l);
 
 public Q_SLOTS:
     void newFile();
@@ -71,11 +75,11 @@ public Q_SLOTS:
     void downloadSchedule();
     void getScheduleFromCalculator(QStringList rows);
 
-    void addLesson(int row);
     void addLessonToEnd();
     void addLessonBefore();
     void addLessonAfter();
-    void deleteLesson();
+
+    void deleteSelectedLesson();
 
     void putTimeFromPC();
     void setTime();

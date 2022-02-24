@@ -34,7 +34,7 @@
      <x>0</x>
      <y>0</y>
      <width>520</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -353,7 +353,7 @@
    <sender>action_deletelesson</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>deleteLesson()</slot>
+   <slot>deleteSelectedLesson()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -578,7 +578,7 @@
   <slot>loadSchedule()</slot>
   <slot>saveSchedule()</slot>
   <slot>addLessonToEnd()</slot>
-  <slot>deleteLesson()</slot>
+  <slot>deleteSelectedLesson()</slot>
   <slot>saveScheduleAs()</slot>
   <slot>checkSchedule()</slot>
   <slot>aboutApplication()</slot>
