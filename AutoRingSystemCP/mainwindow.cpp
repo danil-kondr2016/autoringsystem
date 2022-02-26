@@ -254,49 +254,10 @@ void MainWindow::getScheduleFromCalculator(QStringList rows)
     ui->statusBar->showMessage("Расписание уроков рассчитано");
 }
 
-void MainWindow::saveSchedule()
+void MainWindow::saveScheduleToFile(QString filename)
 {
-    ui->statusBar->clearMessage();
-
-    if (!QFile::exists(lesson_file) || lesson_file.isEmpty()) {
-        QString filename = askForSaveFileName();
-        if (filename.isEmpty()) {
-            return;
-        } else {
-            ui->tableView->setModel(nullptr);
-            lesson_file = filename;
-        }
-    }
-
-    QFile file(lesson_file);
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        if (!lesson_file.isEmpty()) {
-            QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не удалось открыть или создать").arg(lesson_file));
-        }
-    } else {
-        QTextStream fout(&file);
-
-        if (!is_calculator)
-            fout << schedule_to_csv(schedule_from_qstdim(schedule));
-        else
-            fout << cmschedule_to_csv(cmschedule_from_qstdim(schedule));
-        file.close();
-    }
-    ui->tableView->setModel(schedule);
-    file_is_changed = false;
-}
-
-void MainWindow::saveScheduleAs()
-{
-    ui->statusBar->clearMessage();
-    QString filename = askForSaveFileName();
-    if (filename.isEmpty()) {
-        return;
-    } else {
-        ui->tableView->setModel(nullptr);
-        lesson_file = filename;
-    }
+    ui->tableView->setModel(nullptr);
+    lesson_file = filename;
 
     QFile file(lesson_file);
 
@@ -306,17 +267,43 @@ void MainWindow::saveScheduleAs()
         } else {
             QMessageBox::critical(this, "Ошибка", QString("Файл не был выбран").arg(lesson_file));
         }
-    } else {
-        QTextStream fout(&file);
 
-        if (!is_calculator)
-            fout << schedule_to_csv(schedule_from_qstdim(schedule));
-        else
-            fout << cmschedule_to_csv(cmschedule_from_qstdim(schedule));
-        file.close();
+        return;
     }
+
+    QTextStream fout(&file);
+
+    if (!is_calculator)
+        fout << schedule_to_csv(schedule_from_qstdim(schedule));
+    else
+        fout << cmschedule_to_csv(cmschedule_from_qstdim(schedule));
+    file.close();
+
     ui->tableView->setModel(schedule);
     file_is_changed = false;
+}
+
+void MainWindow::saveSchedule()
+{
+    ui->statusBar->clearMessage();
+
+    if (!QFile::exists(lesson_file) || lesson_file.isEmpty()) {
+        QString filename = askForSaveFileName();
+        if (filename.isEmpty())
+            return;
+
+        saveScheduleToFile(filename);
+    }
+}
+
+void MainWindow::saveScheduleAs()
+{
+    ui->statusBar->clearMessage();
+    QString filename = askForSaveFileName();
+    if (filename.isEmpty())
+        return;
+
+    saveScheduleToFile(filename);
 }
 
 void MainWindow::newFile()

@@ -62,6 +62,7 @@ public:
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
+    void saveScheduleToFile(QString filename);
     QByteArray requestPassword();
 
     void addLesson(int l);
