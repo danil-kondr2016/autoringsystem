@@ -162,8 +162,16 @@ Schedule schedule_from_qstdim(QStandardItemModel* model)
     QStringList lesson_start, lesson_end;
     ScheduleEntry se;
     for (int row = 0; row < rc; row++) {
+        se.is_incorrect = 0;
+
         lesson_start = model->index(row, 0).data().toString().split(":");
         lesson_end = model->index(row, 1).data().toString().split(":");
+
+        if (lesson_start.isEmpty())
+            se.is_incorrect++;
+
+        if (lesson_end.isEmpty())
+            se.is_incorrect++;
 
         se.ls_hour = static_cast<unsigned char>(lesson_start[0].toInt());
         se.ls_minute = static_cast<unsigned char>(lesson_start[1].toInt());
@@ -242,4 +250,41 @@ void cmschedule_to_qstdim(QStandardItemModel** model, CalcModeSchedule cmsch)
         (*model)->appendRow(row);
         row.clear();
     }
+}
+
+ScheduleError check_schedule(Schedule sch)
+{
+    ScheduleError e;
+
+    int rc = sch.length();
+
+    int st, et;
+    int ost = 0, oet = 0;
+
+    e.error_type = SE_CORRECT;
+    e.error_row = 0;
+    for (int row = 0; row < rc; row++) {
+        if (sch[row].is_incorrect) {
+            e.error_type = SE_NO_BEGIN_AND_END;
+            e.error_row = row + 1;
+            break;
+        }
+
+        st = sch[row].ls_hour * 60 + sch[row].ls_minute;
+        et = sch[row].le_hour * 60 + sch[row].le_minute;
+
+        if (st > et) {
+            e.error_type = SE_NO_BEGIN_AND_END;
+            e.error_row = row + 1;
+            break;
+        }
+        if ((ost > et) || (oet > st)) {
+            e.error_type = SE_INCORRECT_ORDER;
+            break;
+        }
+        ost = st;
+        oet = et;
+    }
+
+    return e;
 }

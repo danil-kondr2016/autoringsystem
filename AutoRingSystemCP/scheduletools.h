@@ -5,10 +5,23 @@
 #include <QList>
 #include <QStandardItemModel>
 
+enum ScheduleErrorType {
+    SE_INCORRECT_ORDER = -2,
+    SE_END_BEFORE_BEGIN,
+    SE_CORRECT,
+    SE_NO_BEGIN_AND_END
+};
+
+struct ScheduleError {
+    ScheduleErrorType error_type;
+    int error_row;
+};
+
 struct ScheduleEntry {
     unsigned char ls_hour, ls_minute;
     unsigned char le_hour, le_minute;
     unsigned char rings;
+    unsigned char is_incorrect;
 };
 
 struct CalcModeScheduleEntry {
@@ -41,5 +54,7 @@ CalcModeSchedule cmschedule_from_qstdim(QStandardItemModel* model);
 
 void schedule_to_qstdim(QStandardItemModel** model, Schedule sch);
 void cmschedule_to_qstdim(QStandardItemModel** model, CalcModeSchedule cmsch);
+
+ScheduleError check_schedule(Schedule sch);
 
 #endif // SCHEDULETOOLS_H

@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
     QString passwd;
     bool typed;
-    if ((password_salt != QByteArray() && password_hash != QByteArray()) && !(session_lock.exists())) {
+    if ((!password_salt.isEmpty() && !password_hash.isEmpty()) && !(session_lock.exists())) {
         while (true) {
             passwd = QInputDialog::getText(
                         nullptr, "Пароль", "Введите пароль системы: ", QLineEdit::Password,

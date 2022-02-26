@@ -25,10 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    schedule->setColumnCount(3);
-    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
-    schedule->setRowCount(1);
-
+    initTable();
     ui->tableView->setModel(schedule);
 
     lesson_file = QString("");
@@ -44,6 +41,23 @@ MainWindow::MainWindow(QWidget *parent) :
     time_sync = settings->value("time-sync").toBool();
 
     if (time_sync) putTimeFromPC();
+}
+
+void MainWindow::initTable()
+{
+    ui->tableView->setModel(nullptr);
+    schedule->clear();
+
+    if (is_calculator) {
+        schedule->setColumnCount(4);
+        schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Длина урока (мин)" << "Длина перемены (мин)" << "Особые звонки");
+    } else {
+        schedule->setColumnCount(3);
+        schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
+    }
+
+    schedule->setRowCount(1);
+    ui->tableView->setModel(schedule);
 }
 
 QByteArray MainWindow::requestPassword()
@@ -77,6 +91,22 @@ QString MainWindow::askForSaveFileName()
         filename += ".shdl";
 
     return filename;
+}
+
+int MainWindow::askForSaveSchedule()
+{
+    if (!file_is_changed)
+        return QMessageBox::No;
+
+    return QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+}
+
+bool MainWindow::askForQuitFromCalculatorMode()
+{
+    if (!is_calculator)
+        return false;
+
+    return QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?") == QMessageBox::Yes;
 }
 
 void MainWindow::putTimeFromPC()
@@ -123,24 +153,19 @@ void MainWindow::updateSettings() {
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    int answer;
-    if (file_is_changed) {
-        answer = QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-        if (answer != QMessageBox::Cancel) {
-            if (answer == QMessageBox::Yes) {
-                saveSchedule();
-            }
-            calc->close();
-            setwindow->close();
-            event->accept();
-        } else {
-            event->ignore();
-        }
-    } else {
-        calc->close();
-        setwindow->close();
-        event->accept();
+    int answer = askForSaveSchedule();
+
+    if (answer == QMessageBox::Cancel) {
+        event->ignore();
+        return;
     }
+
+    if (answer == QMessageBox::Yes)
+        saveSchedule();
+
+    calc->close();
+    setwindow->close();
+    event->accept();
 }
 
 void MainWindow::setChanged()
@@ -150,92 +175,38 @@ void MainWindow::setChanged()
 
 void MainWindow::checkSchedule()
 {
-    bool was_calculator = is_calculator;
+    ScheduleError e;
 
-    if (was_calculator)
-        turnOffCalculatorMode();
+    if (!is_calculator)
+        e = check_schedule(schedule_from_qstdim(schedule));
+    else
+        e = check_schedule(cmschedule_to_schedule(cmschedule_from_qstdim(schedule)));
 
-    int rc = schedule->rowCount();
-    int cc = schedule->columnCount();
-
-    int error = 0;
-    int error_num = 0;
-
-    QList<QModelIndex> extracted_row;
-    QTime st, et;
-    QTime ost, oet;
-
-    for (int row = 0; (row < rc) && (error == 0); row++) {
-        for (int column = 0; column < cc; column++) {
-            extracted_row.append(schedule->index(row, column));
-        }
-
-        if ((extracted_row[0].data().toString().isEmpty()) || (extracted_row[1].data().toString().isEmpty())) {
-            error = 1;
-            error_num = row + 1;
-        }
-
-        st = extracted_row[0].data().toTime();
-        et = extracted_row[1].data().toTime();
-
-        if (st > et) {
-            if (error == 0) {
-                error = -1;
-                error_num = row + 1;
-            }
-        }
-        if ((ost > et) || (oet > st)) {
-            if (error == 0) {
-                error = -2;
-            }
-        }
-        ost = st;
-        oet = et;
-        extracted_row.clear();
-    }
-
-    if (was_calculator)
-        turnOnCalculatorMode();
-
-    if (error == -2) {
+    switch (e.error_type) {
+    case SE_INCORRECT_ORDER:
         ui->statusBar->showMessage("В расписании нарушен порядок уроков");
-    } else if (error == -1) {
+        break;
+    case SE_END_BEFORE_BEGIN:
         ui->statusBar->showMessage(
-                    QString("Урок %0: конец урока раньше его начала").arg(error_num));
-    } else if (error == 0) {
+                    QString("Урок %0: конец урока раньше его начала").arg(e.error_row));
+        break;
+    case SE_CORRECT:
         ui->statusBar->showMessage("Расписание составлено правильно");
-    } else if (error == 1) {
+        break;
+    case SE_NO_BEGIN_AND_END:
         ui->statusBar->showMessage(
-                    QString("Урок %0: отсутствуют временные границы").arg(error_num));
+                    QString("Урок %0: отсутствуют временные границы").arg(e.error_row));
     }
 }
 
 void MainWindow::loadSchedule()
 {
     QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.shdl");
-    if (filename == "") {
+    if (filename.isEmpty()) {
         return;
-    } else {
-        lesson_file = filename;
     }
 
-    QFile file(lesson_file);
-
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(lesson_file));
-    } else {
-        QTextStream fin(&file);
-        ui->tableView->setModel(nullptr);
-
-        if (!is_calculator)
-            schedule_to_qstdim(&schedule, csv_to_schedule(fin.readAll()));
-        else
-            cmschedule_to_qstdim(&schedule, csv_to_cmschedule(fin.readAll()));
-
-        ui->tableView->setModel(schedule);
-        file.close();
-    }
-    file_is_changed = false;
+    loadScheduleFromFile(filename);
 }
 
 void MainWindow::loadScheduleFromFile(QString filename)
@@ -300,7 +271,7 @@ void MainWindow::saveSchedule()
     QFile file(lesson_file);
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        if (lesson_file != "") {
+        if (!lesson_file.isEmpty()) {
             QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не удалось открыть или создать").arg(lesson_file));
         }
     } else {
@@ -330,7 +301,7 @@ void MainWindow::saveScheduleAs()
     QFile file(lesson_file);
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        if (lesson_file != "") {
+        if (!lesson_file.isEmpty()) {
             QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не удалось открыть или создать").arg(lesson_file));
         } else {
             QMessageBox::critical(this, "Ошибка", QString("Файл не был выбран").arg(lesson_file));
@@ -350,34 +321,14 @@ void MainWindow::saveScheduleAs()
 
 void MainWindow::newFile()
 {
-    int answer;
+    if (askForQuitFromCalculatorMode())
+        turnOffCalculatorMode();
 
-    if (is_calculator) {
-        answer = QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?");
-        if (answer == QMessageBox::No) {
-            return;
-        } else if (answer == QMessageBox::Yes) {
-            turnOffCalculatorMode();
-        }
-    }
-
-    if (file_is_changed) {
-        answer = QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-        if (answer != QMessageBox::Cancel) {
-            if (answer == QMessageBox::Yes) {
-                saveSchedule();
-            }
-        } else {
-            return;
-        }
-    }
+    if (askForSaveSchedule() == QMessageBox::Yes)
+        saveSchedule();
 
     ui->tableView->setModel(nullptr);
-
-    schedule->clear();
-    schedule->setRowCount(1);
-    schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
-
+    initTable();
     ui->tableView->setModel(schedule);
 }
 
@@ -401,7 +352,6 @@ void MainWindow::addLesson(int l)
     else
         schedule->insertRow(l, newRow);
     newRow.clear();
-
 
     setChanged();
 
@@ -512,7 +462,7 @@ void MainWindow::downloadSchedule()
     data.append("method=schedule");
 
     network->post(req, data);
-    file_is_changed = true;
+    setChanged();
 }
 
 void MainWindow::setTime()
@@ -599,7 +549,7 @@ void MainWindow::getResponse(QNetworkReply* rp)
             }
         }
     } else {
-        if (device_ip_address != "")
+        if (!device_ip_address.isEmpty())
             QMessageBox::critical(this, "Ошибка",
                                   QString("Произошла ошибка при обращении к устройству по адресу %0.").arg(device_ip_address));
         else

@@ -54,7 +54,11 @@ public:
 
     bool is_calculator = false;
 
+    void initTable();
+
     QString askForSaveFileName();
+    int askForSaveSchedule();
+    bool askForQuitFromCalculatorMode();
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
