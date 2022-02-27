@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->action_settings, &QAction::triggered, setwindow, &Settings::show);
     connect(setwindow, &Settings::applied, this, &MainWindow::updateSettings);
     connect(network, &QNetworkAccessManager::finished, this, &MainWindow::getResponse);
-    connect(calc, &Calculator::scheduleMade, this, &MainWindow::getScheduleFromCalculator);
+    connect(calc, &Calculator::scheduleCalculated, this, &MainWindow::getScheduleFromCalculator);
 
     device_ip_address = settings->value("ip-address").toString();
     time_sync = settings->value("time-sync").toBool();
@@ -233,18 +233,8 @@ void MainWindow::loadScheduleFromFile(QString filename)
     file_is_changed = false;
 }
 
-void MainWindow::getScheduleFromCalculator(QStringList rows)
+void MainWindow::getScheduleFromCalculator(Schedule sch)
 {
-    Schedule sch;
-    for (QString x : rows) {
-        ScheduleEntry se;
-        sscanf(x.toUtf8().data(), "%02hhu:%02hhu,%02hhu:%02hhu,%hhu",
-               &se.ls_hour, &se.ls_minute,
-               &se.le_hour, &se.le_minute, &se.rings);
-
-        sch.append(se);
-    }
-
     ui->tableView->setModel(nullptr);
     if (!is_calculator)
         schedule_to_qstdim(&schedule, sch);

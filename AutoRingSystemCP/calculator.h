@@ -9,6 +9,9 @@
 #include <QMessageBox>
 #include <QTextStream>
 
+#include "scheduletools.h"
+#include "constants.h"
+
 namespace Ui {
 class Calculator;
 }
@@ -33,7 +36,7 @@ public Q_SLOTS:
     void lengthen();
 
 Q_SIGNALS:
-    void scheduleMade(QStringList rows);
+    void scheduleCalculated(Schedule sch);
 
 private:
     Ui::Calculator *ui;

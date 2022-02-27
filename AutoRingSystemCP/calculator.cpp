@@ -10,6 +10,7 @@ Calculator::Calculator(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->break_delays->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->lesson_quantity->setMaximum(MAX_LESSONS);
 
     breaks->setColumnCount(1);
     breaks->setHorizontalHeaderLabels(QStringList() << "Длительность перемены после урока (мин)");
@@ -49,18 +50,21 @@ void Calculator::saveSchedule()
 {
     calculateSchedule();
 
-    QStringList rows;
+    Schedule sch;
+    ScheduleEntry se;
+
+    se.is_incorrect = 0;
+    se.rings = 0;
+
     for (int i = 0; i < schedule.size(); i++) {
-        rows.push_back("%1,%2:%3,%4:%5,0");
-        rows[i] = rows[i]
-                .arg(QString::number(i+1), 2, '0')
-                .arg(QString::number(schedule[i].first.hour()), 2, '0')
-                .arg(QString::number(schedule[i].first.minute()), 2, '0')
-                .arg(QString::number(schedule[i].second.hour()), 2, '0')
-                .arg(QString::number(schedule[i].second.minute()), 2, '0');
+        se.ls_hour = schedule[i].first.hour();
+        se.ls_minute = schedule[i].first.minute();
+        se.le_hour = schedule[i].second.hour();
+        se.le_minute = schedule[i].second.minute();
+        sch.push_back(se);
     }
 
-    emit scheduleMade(rows);
+    emit scheduleCalculated(sch);
     close();
 }
 

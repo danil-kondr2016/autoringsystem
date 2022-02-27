@@ -78,7 +78,7 @@ public Q_SLOTS:
 
     void uploadSchedule();
     void downloadSchedule();
-    void getScheduleFromCalculator(QStringList rows);
+    void getScheduleFromCalculator(Schedule sch);
 
     void addLessonToEnd();
     void addLessonBefore();
