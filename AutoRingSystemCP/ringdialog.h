@@ -3,6 +3,13 @@
 
 #include <QDialog>
 
+struct RingParameters {
+    int ring_n, ring_d, pause_d;
+    int result;
+};
+
+RingParameters get_ring_parameters(QWidget * parent);
+
 namespace Ui {
 class RingDialog;
 }
@@ -12,7 +19,7 @@ class RingDialog : public QDialog
     Q_OBJECT
 
 public:
-    int quantity, time, pause;
+    int quantity, duration, pause;
 
     explicit RingDialog(QWidget *parent = nullptr);
     ~RingDialog();
@@ -22,7 +29,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void quantityChanged(int value);
-    void timeChanged(int value);
+    void durationChanged(int value);
     void pauseChanged(int value);
 
 private:

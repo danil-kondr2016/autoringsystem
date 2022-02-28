@@ -36,9 +36,9 @@ void Settings::accept()
     settings->clear();
     settings->setValue("ip-address", ip_address);
     if (is_sync == Qt::Checked) {
-        settings->setValue("sync-time", true);
+        settings->setValue("time-sync", true);
     } else {
-        settings->setValue("sync-time", false);
+        settings->setValue("time-sync", false);
     }
 
     settings->setValue("password_hash", password_hash);

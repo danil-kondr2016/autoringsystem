@@ -54,20 +54,10 @@ public:
 
     bool is_calculator = false;
 
-    void initTable();
-
-    void doRequest(QString method, QString args);
-    QString askForSaveFileName();
-    int askForSaveSchedule();
-    bool askForQuitFromCalculatorMode();
     void closeEvent(QCloseEvent* event);
 
     void loadScheduleFromFile(QString filename);
     void saveScheduleToFile(QString filename);
-    QByteArray requestPassword();
-
-    void addLesson(int l);
-    void deleteLesson(int l);
 
 public Q_SLOTS:
     void newFile();
@@ -119,6 +109,18 @@ private:
 
     QSettings *settings;
     Settings *setwindow;
+
+    void initTable();
+    void criticalError(QString err);
+    QByteArray requestPassword();
+    void doRequest(QString method, QString args);
+
+    QString askForSaveFileName();
+    int askForSaveSchedule();
+    bool askForQuitFromCalculatorMode();
+
+    void addLesson(int l);
+    void deleteLesson(int l);
 };
 
 #endif // MAINWINDOW_H

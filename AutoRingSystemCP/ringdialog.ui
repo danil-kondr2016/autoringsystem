@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
+    <width>497</width>
     <height>179</height>
    </rect>
   </property>
@@ -43,7 +43,7 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="QSpinBox" name="ringDelay"/>
+    <widget class="QSpinBox" name="ringDuration"/>
    </item>
    <item row="7" column="0">
     <widget class="QLabel" name="label_3">
@@ -53,7 +53,7 @@
     </widget>
    </item>
    <item row="7" column="1">
-    <widget class="QSpinBox" name="pauseTime"/>
+    <widget class="QSpinBox" name="pauseDuration"/>
    </item>
    <item row="9" column="1">
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -82,8 +82,8 @@
  </widget>
  <tabstops>
   <tabstop>ringQuantity</tabstop>
-  <tabstop>ringDelay</tabstop>
-  <tabstop>pauseTime</tabstop>
+  <tabstop>ringDuration</tabstop>
+  <tabstop>pauseDuration</tabstop>
  </tabstops>
  <resources>
   <include location="res.qrc"/>
@@ -122,10 +122,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>ringDelay</sender>
+   <sender>ringDuration</sender>
    <signal>valueChanged(int)</signal>
    <receiver>RingDialog</receiver>
-   <slot>timeChanged(int)</slot>
+   <slot>durationChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>317</x>
@@ -138,7 +138,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>pauseTime</sender>
+   <sender>pauseDuration</sender>
    <signal>valueChanged(int)</signal>
    <receiver>RingDialog</receiver>
    <slot>pauseChanged(int)</slot>
@@ -172,7 +172,7 @@
  </connections>
  <slots>
   <slot>quantityChanged(int)</slot>
-  <slot>timeChanged(int)</slot>
+  <slot>durationChanged(int)</slot>
   <slot>pauseChanged(int)</slot>
  </slots>
 </ui>
