@@ -57,6 +57,11 @@ MainWindow::MainWindow(QWidget *parent) :
         putTimeFromPC();
 }
 
+void MainWindow::criticalError(QString err)
+{
+    QMessageBox::critical(this, "Ошибка", err);
+}
+
 void MainWindow::initTable()
 {
     ui->tableView->setModel(nullptr);
@@ -247,11 +252,7 @@ void MainWindow::loadScheduleFromFile(QString filename)
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(
-                    this,
-                    "Ошибка",
-                    QString("Файл по адресу %0 не обнаружен").arg(filename)
-                    );
+        criticalError(QString("Файл по адресу %0 не обнаружен").arg(filename));
         return;
     }
 
@@ -290,19 +291,11 @@ void MainWindow::saveScheduleToFile(QString filename)
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         if (!lesson_file.isEmpty()) {
-            QMessageBox::critical(
-                        this,
-                        "Ошибка",
+            criticalError(
                         QString("Файл по адресу %0 не удалось открыть или создать")
-                        .arg(lesson_file)
-                        );
+                        .arg(lesson_file));
         } else {
-            QMessageBox::critical(
-                        this,
-                        "Ошибка",
-                        QString("Файл не был выбран")
-                        .arg(lesson_file)
-                        );
+            criticalError("Файл не был выбран");
         }
 
         return;
@@ -549,23 +542,16 @@ void MainWindow::getResponse(QNetworkReply* rp)
                 if (sx[1] == "0")
                     ui->statusBar->showMessage("Операция выполнена успешно");
                 else if (sx[1] == "1")
-                    QMessageBox::critical(this, "Ошибка", "Неверный пароль");
+                    criticalError("Неверный пароль");
             }
         }
     } else {
         if (!device_ip_address.isEmpty())
-            QMessageBox::critical(
-                        this,
-                        "Ошибка",
+            criticalError(
                         QString("Произошла ошибка при обращении к устройству по адресу %0.")
-                        .arg(device_ip_address)
-                        );
+                        .arg(device_ip_address));
         else
-            QMessageBox::critical(
-                        this,
-                        "Ошибка",
-                        "Адрес устройства не был указан."
-                        );
+            criticalError("Адрес устройства не был указан.");
     }
 }
 
@@ -576,26 +562,13 @@ void MainWindow::invokeCalculator()
 
 void MainWindow::doRings()
 {
-    int ring_number, ring_delay, ring_pause;
-
-    RingDialog* ringDialog = new RingDialog(this);
-    ringDialog->initialize(1, 3);
-
-    if (ringDialog->exec() == QDialog::Accepted) {
-        ring_number = ringDialog->quantity;
-        ring_delay = ringDialog->time;
-        ring_pause = ringDialog->pause;
-        delete ringDialog;
-    } else {
-        delete ringDialog;
-        return;
-    }
+    RingParameters r = get_ring_parameters(this);
 
     QString args = QString("number=%1&time=%2")
-            .arg(ring_number)
-            .arg(ring_delay);
-    if (ring_pause >= 1) {
-        args += QString("&pause=%1").arg(ring_pause);
+            .arg(r.ring_n)
+            .arg(r.ring_d);
+    if (r.pause_d >= 1) {
+        args += QString("&pause=%1").arg(r.pause_d);
     }
 
     doRequest("doring", args);
@@ -771,7 +744,7 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
 
         if (break_delay <= 0) {
             ui->tableView->setModel(schedule);
-            QMessageBox::critical(this, "Ошибка", "Перемена полностью отсутствует или пересекается с уроком");
+            criticalError("Перемена полностью отсутствует или пересекается с уроком");
             this->recalculateSchedule();
             return;
         }
