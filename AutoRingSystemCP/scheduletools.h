@@ -18,16 +18,16 @@ struct ScheduleError {
 };
 
 struct ScheduleEntry {
-    unsigned char ls_hour, ls_minute;
-    unsigned char le_hour, le_minute;
-    unsigned char rings;
-    unsigned char is_incorrect;
+    int ls_hour, ls_minute;
+    int le_hour, le_minute;
+    int rings;
+    int is_incorrect;
 };
 
 struct CalcModeScheduleEntry {
-    unsigned char ls_hour, ls_minute;
-    signed char lesson_delay, break_delay;
-    unsigned char rings;
+    int ls_hour, ls_minute;
+    int lesson_delay, break_delay;
+    int rings;
 };
 
 typedef QList<ScheduleEntry> Schedule;

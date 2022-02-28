@@ -11,10 +11,10 @@ ScheduleEntry cmse_to_se(CalcModeScheduleEntry cmse)
     se.ls_hour = cmse.ls_hour;
     se.ls_minute = cmse.ls_minute;
 
-    ls = static_cast<int>(se.ls_hour) * 60 + se.ls_minute;
+    ls = se.ls_hour * 60 + se.ls_minute;
     le = ls + cmse.lesson_delay;
 
-    se.le_hour = static_cast<unsigned char>(le / 60);
+    se.le_hour = le / 60;
     se.le_minute = le % 60;
 
     se.rings = cmse.rings;
@@ -27,13 +27,13 @@ CalcModeScheduleEntry se_to_cmse(ScheduleEntry se)
     CalcModeScheduleEntry cmse;
     int ls, le;
 
-    ls = static_cast<int>(se.ls_hour) * 60 + se.ls_minute;
-    le = static_cast<int>(se.le_hour) * 60 + se.le_minute;
+    ls = se.ls_hour * 60 + se.ls_minute;
+    le = se.le_hour * 60 + se.le_minute;
 
     cmse.ls_hour = se.ls_hour;
     cmse.ls_minute = se.ls_minute;
 
-    cmse.lesson_delay = static_cast<signed char>(le - ls);
+    cmse.lesson_delay = le - ls;
     cmse.break_delay = 0;
 
     cmse.rings = se.rings;
@@ -46,15 +46,15 @@ CalcModeScheduleEntry se_to_cmse(ScheduleEntry se1, ScheduleEntry se2)
     CalcModeScheduleEntry cmse;
     int ls, le, ls1;
 
-    ls = static_cast<signed char>(se1.ls_hour * 60 + se1.ls_minute);
-    le = static_cast<signed char>(se1.le_hour * 60 + se1.le_minute);
-    ls1 = static_cast<signed char>(se2.ls_hour * 60 + se2.ls_minute);
+    ls = se1.ls_hour * 60 + se1.ls_minute;
+    le = se1.le_hour * 60 + se1.le_minute;
+    ls1 = se2.ls_hour * 60 + se2.ls_minute;
 
     cmse.ls_hour = se1.ls_hour;
     cmse.ls_minute = se1.ls_minute;
 
-    cmse.lesson_delay = static_cast<signed char>(le - ls);
-    cmse.break_delay = static_cast<signed char>(ls1 - le);
+    cmse.lesson_delay = le - ls;
+    cmse.break_delay = ls1 - le;
 
     cmse.rings = se1.rings;
 
@@ -138,7 +138,7 @@ Schedule csv_to_schedule(QString csv)
             break;
 
         ScheduleEntry se;
-        sscanf(row.toUtf8().data(), "%02hhu:%02hhu,%02hhu:%02hhu,%hhu",
+        sscanf(row.toUtf8().data(), "%02d:%02d,%02d:%02d,%d",
                &se.ls_hour, &se.ls_minute,
                &se.le_hour, &se.le_minute, &se.rings);
 
@@ -173,13 +173,13 @@ Schedule schedule_from_qstdim(QStandardItemModel* model)
         if (lesson_end.isEmpty())
             se.is_incorrect++;
 
-        se.ls_hour = static_cast<unsigned char>(lesson_start[0].toInt());
-        se.ls_minute = static_cast<unsigned char>(lesson_start[1].toInt());
+        se.ls_hour = lesson_start[0].toInt();
+        se.ls_minute = lesson_start[1].toInt();
 
-        se.le_hour = static_cast<unsigned char>(lesson_end[0].toInt());
-        se.le_minute =  static_cast<unsigned char>(lesson_end[1].toInt());
+        se.le_hour = lesson_end[0].toInt();
+        se.le_minute =  lesson_end[1].toInt();
 
-        se.rings = static_cast<unsigned char>(model->index(row, 2).data().toInt());
+        se.rings = model->index(row, 2).data().toInt();
 
         sch.append(se);
     }
@@ -198,12 +198,12 @@ CalcModeSchedule cmschedule_from_qstdim(QStandardItemModel* model)
     for (int row = 0; row < rc; row++) {
         lesson_start = model->index(row, 0).data().toString().split(":");
 
-        cmse.ls_hour = static_cast<unsigned char>(lesson_start[0].toInt());
-        cmse.ls_minute = static_cast<unsigned char>(lesson_start[1].toInt());
+        cmse.ls_hour = lesson_start[0].toInt();
+        cmse.ls_minute = lesson_start[1].toInt();
 
-        cmse.lesson_delay = static_cast<signed char>(model->index(row, 1).data().toInt());
-        cmse.break_delay = static_cast<signed char>(model->index(row, 2).data().toInt());
-        cmse.rings = static_cast<unsigned char>(model->index(row, 3).data().toInt());
+        cmse.lesson_delay = model->index(row, 1).data().toInt();
+        cmse.break_delay = model->index(row, 2).data().toInt();
+        cmse.rings = model->index(row, 3).data().toInt();
 
         cmsch.append(cmse);
     }
@@ -215,7 +215,12 @@ void schedule_to_qstdim(QStandardItemModel** model, Schedule sch)
 {
     (*model)->clear();
     (*model)->setColumnCount(3);
-    (*model)->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
+    (*model)->setHorizontalHeaderLabels(
+                QStringList()
+                << "Начало"
+                << "Конец"
+                << "Особые звонки"
+                );
 
     QList<QStandardItem*> row;
     for (int i = 0; i < sch.length(); i++) {
@@ -236,7 +241,13 @@ void cmschedule_to_qstdim(QStandardItemModel** model, CalcModeSchedule cmsch)
 {
     (*model)->clear();
     (*model)->setColumnCount(4);
-    (*model)->setHorizontalHeaderLabels(QStringList() << "Начало" << "Длина урока (мин)" << "Длина перемены (мин)" << "Особые звонки");
+    (*model)->setHorizontalHeaderLabels(
+                QStringList()
+                << "Начало"
+                << "Длина урока (мин)"
+                << "Длина перемены (мин)"
+                << "Особые звонки"
+                );
 
     QList<QStandardItem*> row;
     for (int i = 0; i < cmsch.length(); i++) {

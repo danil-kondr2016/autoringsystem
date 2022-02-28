@@ -12,6 +12,19 @@
 #include <QDir>
 #include <QException>
 
+int qstring_to_minutes(QString str)
+{
+    QTime time = QTime::fromString(str, "H:mm");
+    return time.hour() * 60 + time.minute();
+}
+
+QString minutes_to_qstring(int minutes) {
+    int h = minutes / 60;
+    int m = minutes % 60;
+
+    return QTime(h, m).toString();
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -208,7 +221,8 @@ void MainWindow::checkSchedule()
         break;
     case SE_END_BEFORE_BEGIN:
         ui->statusBar->showMessage(
-                    QString("Урок %0: конец урока раньше его начала").arg(e.error_row));
+                    QString("Урок %0: конец урока раньше его начала")
+                    .arg(e.error_row));
         break;
     case SE_CORRECT:
         ui->statusBar->showMessage("Расписание составлено правильно");
@@ -233,7 +247,11 @@ void MainWindow::loadScheduleFromFile(QString filename)
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(filename));
+        QMessageBox::critical(
+                    this,
+                    "Ошибка",
+                    QString("Файл по адресу %0 не обнаружен").arg(filename)
+                    );
         return;
     }
 
@@ -342,7 +360,10 @@ void MainWindow::addLesson(int l)
     int cc = schedule->columnCount();
 
     if ((rc + 1) > MAX_LESSONS) {
-        ui->statusBar->showMessage(QString("В расписании не может быть более %0 уроков").arg(MAX_LESSONS));
+        ui->statusBar->showMessage(
+                    QString("В расписании не может быть более %0 уроков")
+                    .arg(MAX_LESSONS)
+                    );
         return;
     }
 
@@ -422,8 +443,9 @@ void MainWindow::aboutApplication()
 void MainWindow::uploadSchedule()
 {
     QString x;
-    Schedule sch = (!is_calculator) ? schedule_from_qstdim(schedule)
-                                    : cmschedule_to_schedule(cmschedule_from_qstdim(schedule));
+    Schedule sch = (!is_calculator)
+            ? schedule_from_qstdim(schedule)
+            : cmschedule_to_schedule(cmschedule_from_qstdim(schedule));
 
     x += QString("lessnum=%0&schedule=").arg(sch.length());
 
@@ -479,19 +501,24 @@ void MainWindow::getResponse(QNetworkReply* rp)
 
         for (QByteArray x : QByteArray(answer).split('&')) {
             QStringList sx;
-            for (QByteArray y : x.split('=')) sx.append(QByteArray::fromPercentEncoding(y));
+            for (QByteArray y : x.split('='))
+                sx.append(QByteArray::fromPercentEncoding(y));
             if (sx[0] == "schedule") {
                 Schedule sch;
                 QString record;
                 for (QChar x : sx[1]) {
-                    if (x != '_') record += x;
+                    if (x != '_')
+                        record += x;
                     else {
                         int ln, ls, le, rn;
-                        sscanf(record.toUtf8().data(), "%d-%d.%d.%d", &ln, &ls, &le, &rn);
+                        sscanf(record.toUtf8().data(), "%d-%d.%d.%d",
+                               &ln, &ls, &le, &rn);
                         ScheduleEntry se;
-                        se.ls_hour = static_cast<unsigned char>(ls / 60); se.ls_minute = ls % 60;
-                        se.le_hour = static_cast<unsigned char>(le / 60); se.le_minute = le % 60;
-                        se.rings = static_cast<unsigned char>(rn);
+                        se.ls_hour = ls / 60;
+                        se.ls_minute = ls % 60;
+                        se.le_hour = le / 60;
+                        se.le_minute = le % 60;
+                        se.rings = rn;
 
                         sch.append(se);
                         record.clear();
@@ -669,8 +696,7 @@ void MainWindow::turnOffCalculatorMode()
 
     int start = 0, end = 0;
     for (int row = 0; row < rc; row++) {
-        start = QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm").hour()*60
-              + QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm").minute();
+        start = qstring_to_minutes(schedule->index(row, 0).data().toString());
         end = start + schedule->index(row, 1).data().toInt();
         end_column.append(new QStandardItem(QTime(end/60, end%60).toString("HH:mm")));
     }
@@ -701,21 +727,21 @@ void MainWindow::recalculateSchedule()
     ui->tableView->setModel(nullptr);
 
     int start;
-    int first_lesson_start =
-            QTime::fromString(schedule->index(0, 0).data().toString(), "H:mm").hour()*60
-          + QTime::fromString(schedule->index(0, 0).data().toString(), "H:mm").minute();
+    int first_lesson_start = qstring_to_minutes(schedule->index(0, 0).data().toString());
 
     start = first_lesson_start;
 
     QList<QStandardItem*> start_column;
-    start_column.append(new QStandardItem(QTime(first_lesson_start/60, first_lesson_start%60).toString("HH:mm")));
+    start_column.append(
+                new QStandardItem(minutes_to_qstring(first_lesson_start))
+                );
 
     QTime start_element(0, 0);
     int rc = schedule->rowCount();
     for (int row = 1; row < rc; row++) {
-        start += (schedule->index(row-1, 1).data().toInt() + schedule->index(row-1, 2).data().toInt());
-        start_element = QTime(start/60, start%60);
-        start_column.append(new QStandardItem(start_element.toString("HH:mm")));
+        start += schedule->index(row-1, 1).data().toInt();
+        start += schedule->index(row-1, 2).data().toInt();
+        start_column.append(new QStandardItem(minutes_to_qstring(start)));
     }
 
     schedule->removeColumn(0);
@@ -736,10 +762,10 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
 
         int lesson_delay = schedule->index(rn, 1).data().toInt();
         int break_delay = schedule->index(rn-1, 2).data().toInt();
-        int start_time = QTime::fromString(schedule->index(rn, 0).data().toString(), "HH:mm").hour()*60
-                       + QTime::fromString(schedule->index(rn, 0).data().toString(), "HH:mm").minute();
-        int start1_time = QTime::fromString(schedule->index(rn-1, 0).data().toString(), "HH:mm").hour()*60
-                        + QTime::fromString(schedule->index(rn-1, 0).data().toString(), "HH:mm").minute();
+        int start_time =
+                qstring_to_minutes(schedule->index(rn, 0).data().toString());
+        int start1_time =
+                qstring_to_minutes(schedule->index(rn-1, 0).data().toString());
 
         break_delay += start_time - (start1_time+break_delay) - lesson_delay;
 
