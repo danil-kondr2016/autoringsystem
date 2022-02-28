@@ -25,6 +25,8 @@ QByteArray generate_salt()
 
 QString get_password_hash(QByteArray password, QByteArray salt)
 {
+    char hex[] = "0123456789abcdef";
+
     QByteArray salted;
     salted.append(password);
     salted.append(salt);
@@ -40,7 +42,8 @@ QString get_password_hash(QByteArray password, QByteArray salt)
 
     QString result;
     for (int i = 0; i < hash.length(); i++) {
-        result.append(QString::number(hash[i], 16).toUtf8());
+        result.append(hex[(hash[i] >> 4) & 0x0F]);
+        result.append(hex[hash[i] & 0x0F]);
     }
 
     return result;

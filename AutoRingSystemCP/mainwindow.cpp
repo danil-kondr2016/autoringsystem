@@ -5,6 +5,7 @@
 #include "scheduletools.h"
 
 #include <stdio.h>
+#include <cstdarg>
 #include <algorithm>
 
 #include <QDebug>
@@ -26,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     initTable();
-    ui->tableView->setModel(schedule);
 
     lesson_file = QString("");
     file_is_changed = false;
@@ -40,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     device_ip_address = settings->value("ip-address").toString();
     time_sync = settings->value("time-sync").toBool();
 
-    if (time_sync) putTimeFromPC();
+    if (time_sync)
+        putTimeFromPC();
 }
 
 void MainWindow::initTable()
@@ -50,10 +51,21 @@ void MainWindow::initTable()
 
     if (is_calculator) {
         schedule->setColumnCount(4);
-        schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Длина урока (мин)" << "Длина перемены (мин)" << "Особые звонки");
+        schedule->setHorizontalHeaderLabels(
+                    QStringList()
+                    << "Начало"
+                    << "Длина урока (мин)"
+                    << "Длина перемены (мин)"
+                    << "Особые звонки"
+                    );
     } else {
         schedule->setColumnCount(3);
-        schedule->setHorizontalHeaderLabels(QStringList() << "Начало" << "Конец" << "Особые звонки");
+        schedule->setHorizontalHeaderLabels(
+                    QStringList()
+                    << "Начало"
+                    << "Конец"
+                    << "Особые звонки"
+                    );
     }
 
     schedule->setRowCount(1);
@@ -76,9 +88,8 @@ QByteArray MainWindow::requestPassword()
                  QLineEdit::Password, QString(), &typed
                );
 
-    if (!typed) {
+    if (!typed)
         return QByteArray();
-    }
 
     return get_password_hash(password.toUtf8(), password_salt).toUtf8();
 }
@@ -98,7 +109,12 @@ int MainWindow::askForSaveSchedule()
     if (!file_is_changed)
         return QMessageBox::No;
 
-    return QMessageBox::warning(this, "Система автоматической подачи звонков", "Сохранить расписание?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+    return QMessageBox::warning(
+                this,
+                "Система автоматической подачи звонков",
+                "Сохранить расписание?",
+                QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel
+                );
 }
 
 bool MainWindow::askForQuitFromCalculatorMode()
@@ -106,49 +122,53 @@ bool MainWindow::askForQuitFromCalculatorMode()
     if (!is_calculator)
         return false;
 
-    return QMessageBox::question(this, "Система автоматической подачи звонков", "Выйти из режима калькулятора?") == QMessageBox::Yes;
+    return QMessageBox::question(
+                this,
+                "Система автоматической подачи звонков",
+                "Выйти из режима калькулятора?"
+                ) == QMessageBox::Yes;
+}
+
+void MainWindow::doRequest(QString method, QString args = QString())
+{
+    QNetworkRequest req;
+
+    QString url = "http://" + device_ip_address + "/autoring";
+    req.setUrl(QUrl(url));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QByteArray data;
+
+    data.append("method=");
+    data.append(method.toUtf8());
+    if (method == "set" || method == "doring") {
+        data.append("&pwdhash=");
+        data.append(requestPassword());
+    }
+    if (!args.isEmpty()) {
+        data.append("&");
+        data.append(args.toUtf8());
+    }
+
+    network->post(req, data);
 }
 
 void MainWindow::putTimeFromPC()
 {
     QDateTime curtime = QDateTime::currentDateTime();
-    QNetworkRequest req;
+    QString curtime_string = QString("time=") + curtime.toString("HH:mm:ss").replace(":", "%3A");
 
-    QString curtime_string = "time=";
-    curtime_string += curtime.toString("HH:mm:ss").replace(":", "%3A");
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=set&");
-    data.append(curtime_string.toUtf8());
-
-    network->post(req, data);
+    doRequest("set", curtime_string);
 }
 
 void MainWindow::updateSettings() {
     device_ip_address = settings->value("ip-address").toString();
     time_sync = settings->value("time-sync").toBool();
 
-    QNetworkRequest req;
+    QString arg = QString("passwd=%1&pwdsalt=%2")
+            .arg(setwindow->password_hash)
+            .arg(QString::fromUtf8(setwindow->password_salt));
 
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=set&pwdhash=");
-    data.append(setwindow->old_password_hash.toUtf8());
-    data.append("&passwd=");
-    data.append(setwindow->password_hash.toUtf8());
-    data.append("&pwdsalt=");
-    data.append(setwindow->password_salt);
-
-    network->post(req, data);
+    doRequest("set", arg);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -202,34 +222,33 @@ void MainWindow::checkSchedule()
 void MainWindow::loadSchedule()
 {
     QString filename = QFileDialog::getOpenFileName(this, QString(), QString(), "*.shdl");
-    if (filename.isEmpty()) {
+    if (filename.isEmpty())
         return;
-    }
 
     loadScheduleFromFile(filename);
 }
 
 void MainWindow::loadScheduleFromFile(QString filename)
 {
-    lesson_file = filename;
-
-    QFile file(lesson_file);
+    QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(lesson_file));
-    } else {
-        QTextStream fin(&file);
-        ui->tableView->setModel(nullptr);
-
-        if (!is_calculator)
-            schedule_to_qstdim(&schedule, csv_to_schedule(fin.readAll()));
-        else
-            cmschedule_to_qstdim(&schedule, csv_to_cmschedule(fin.readAll()));
-
-        ui->tableView->setModel(schedule);
-        file.close();
+        QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не обнаружен").arg(filename));
+        return;
     }
 
+    QTextStream fin(&file);
+    ui->tableView->setModel(nullptr);
+
+    if (!is_calculator)
+        schedule_to_qstdim(&schedule, csv_to_schedule(fin.readAll()));
+    else
+        cmschedule_to_qstdim(&schedule, csv_to_cmschedule(fin.readAll()));
+
+    ui->tableView->setModel(schedule);
+    file.close();
+
+    lesson_file = filename;
     file_is_changed = false;
 }
 
@@ -253,9 +272,19 @@ void MainWindow::saveScheduleToFile(QString filename)
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         if (!lesson_file.isEmpty()) {
-            QMessageBox::critical(this, "Ошибка", QString("Файл по адресу %0 не удалось открыть или создать").arg(lesson_file));
+            QMessageBox::critical(
+                        this,
+                        "Ошибка",
+                        QString("Файл по адресу %0 не удалось открыть или создать")
+                        .arg(lesson_file)
+                        );
         } else {
-            QMessageBox::critical(this, "Ошибка", QString("Файл не был выбран").arg(lesson_file));
+            QMessageBox::critical(
+                        this,
+                        "Ошибка",
+                        QString("Файл не был выбран")
+                        .arg(lesson_file)
+                        );
         }
 
         return;
@@ -304,9 +333,7 @@ void MainWindow::newFile()
     if (askForSaveSchedule() == QMessageBox::Yes)
         saveSchedule();
 
-    ui->tableView->setModel(nullptr);
     initTable();
-    ui->tableView->setModel(schedule);
 }
 
 void MainWindow::addLesson(int l)
@@ -394,19 +421,6 @@ void MainWindow::aboutApplication()
 
 void MainWindow::uploadSchedule()
 {
-    QNetworkRequest req;
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    req.setRawHeader("Connection", "Keep-Alive");
-
-    QByteArray data;
-
-    data.append("method=set&");
-    data.append("pwdhash=");
-    data.append(requestPassword());
-    data.append("&");
     QString x;
     Schedule sch = (!is_calculator) ? schedule_from_qstdim(schedule)
                                     : cmschedule_to_schedule(cmschedule_from_qstdim(schedule));
@@ -421,53 +435,39 @@ void MainWindow::uploadSchedule()
                 .arg(sch[i].rings);
     }
 
-    data.append(x.toUtf8());
-
-    network->post(req, data);
+    doRequest("set", x);
 }
 
 void MainWindow::downloadSchedule()
 {
-    QNetworkRequest req;
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=schedule");
-
-    network->post(req, data);
+    doRequest("schedule");
     setChanged();
 }
 
 void MainWindow::setTime()
 {
     bool typed;
-    QString time_string = QInputDialog::getText(this, "Ввод времени", "Введите время в виде \"чч:мм:сс\"", QLineEdit::Normal, QString(), &typed);
-    if (!typed) return;
+
+    // TODO Replace it with custom time input dialog
+    QString time_string = QInputDialog::getText(
+                this,
+                "Ввод времени",
+                "Введите время в виде \"чч:мм:сс\"",
+                QLineEdit::Normal,
+                QString(),
+                &typed
+                );
+    if (!typed)
+        return;
     QTime time = QTime::fromString(time_string, "H:mm:ss");
 
-    if (time.toString().isEmpty()) return;
+    if (time.toString().isEmpty())
+        return;
 
     QString curtime_string = "time=";
     curtime_string += time.toString("HH:mm:ss").replace(":", "%3A");
  
-    QNetworkRequest req;
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=set&pwdhash=");
-    data.append(requestPassword());
-    data.append("&");
-    data.append(curtime_string.toUtf8());
-
-    network->post(req, data);
+    doRequest("set", curtime_string);
 }
 
 void MainWindow::getResponse(QNetworkReply* rp)
@@ -527,11 +527,18 @@ void MainWindow::getResponse(QNetworkReply* rp)
         }
     } else {
         if (!device_ip_address.isEmpty())
-            QMessageBox::critical(this, "Ошибка",
-                                  QString("Произошла ошибка при обращении к устройству по адресу %0.").arg(device_ip_address));
+            QMessageBox::critical(
+                        this,
+                        "Ошибка",
+                        QString("Произошла ошибка при обращении к устройству по адресу %0.")
+                        .arg(device_ip_address)
+                        );
         else
-            QMessageBox::critical(this, "Ошибка",
-                                  "Адрес устройства не был указан.");
+            QMessageBox::critical(
+                        this,
+                        "Ошибка",
+                        "Адрес устройства не был указан."
+                        );
     }
 }
 
@@ -557,24 +564,14 @@ void MainWindow::doRings()
         return;
     }
 
-    QNetworkRequest req;
-
-    QString url = "http://" + device_ip_address + "/autoring";
-    req.setUrl(QUrl(url));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=doring&pwdhash=");
-    data.append(requestPassword());
-    data.append("&");
-    data.append(QString("number=%0&").arg(ring_number).toUtf8());
-    data.append(QString("time=%0").arg(ring_delay).toUtf8());
+    QString args = QString("number=%1&time=%2")
+            .arg(ring_number)
+            .arg(ring_delay);
     if (ring_pause >= 1) {
-        data.append(QString("&pause=%0").arg(ring_pause).toUtf8());
+        args += QString("&pause=%1").arg(ring_pause);
     }
 
-    network->post(req, data);
+    doRequest("doring", args);
 }
 
 void MainWindow::tableViewContextMenu(QPoint position)
@@ -769,16 +766,7 @@ void MainWindow::changeBreaksAndRecalculate(QStandardItem* item)
 
 void MainWindow::getPassword()
 {
-    QNetworkRequest req;
-
-    req.setUrl(QUrl("http://" + device_ip_address + "/autoring"));
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    QByteArray data;
-
-    data.append("method=password");
-
-    network->post(req, data);
+    doRequest("password");
 }
 
 MainWindow::~MainWindow()

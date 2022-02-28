@@ -56,6 +56,7 @@ public:
 
     void initTable();
 
+    void doRequest(QString method, QString args);
     QString askForSaveFileName();
     int askForSaveSchedule();
     bool askForQuitFromCalculatorMode();
