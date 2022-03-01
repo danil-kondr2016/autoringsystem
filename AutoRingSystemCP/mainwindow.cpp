@@ -92,24 +92,7 @@ void MainWindow::initTable()
 
 QByteArray MainWindow::requestPassword()
 {
-    QString password_hash = settings->value("password_hash").toString();
-    QByteArray password_salt = settings->value("password_salt").toByteArray();
-
-    if (password_hash.isEmpty() && password_salt.isEmpty())
-        return QByteArray();
-
-    QString password;
-
-    bool typed;
-    password = QInputDialog::getText(
-                 this, "Пароль", "Введите пароль: ",
-                 QLineEdit::Password, QString(), &typed
-               );
-
-    if (!typed)
-        return QByteArray();
-
-    return get_password_hash(password.toUtf8(), password_salt).toUtf8();
+    return request_password(this).toUtf8();
 }
 
 QString MainWindow::askForSaveFileName()

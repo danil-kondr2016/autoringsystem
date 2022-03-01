@@ -1,6 +1,11 @@
 #include "passwdtools.h"
 
 #include <QCryptographicHash>
+#include <QSettings>
+#include <QDir>
+#include <QInputDialog>
+#include <QLineEdit>
+
 #include <random>
 #include <ctime>
 
@@ -47,4 +52,44 @@ QString get_password_hash(QByteArray password, QByteArray salt)
     }
 
     return result;
+}
+
+QString request_password(QWidget * parent = nullptr)
+{
+    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
+
+    QString password_hash = settings.value("password_hash").toString();
+    QByteArray password_salt = settings.value("password_salt").toByteArray();
+
+    if (password_hash.isEmpty() && password_salt.isEmpty())
+        return QString("");
+
+    QString password;
+
+    bool typed;
+    password = QInputDialog::getText(
+                 parent, "Пароль", "Введите пароль: ",
+                 QLineEdit::Password, QString(), &typed
+               );
+
+    if (!typed)
+        return QString();
+
+    return get_password_hash(password.toUtf8(), password_salt);
+}
+
+PasswordCheckState check_password()
+{
+    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
+
+    QString password_hash = settings.value("password_hash").toString();
+    if (password_hash.isEmpty())
+        return PASS_CORRECT;
+
+    QString hash = request_password();
+
+    if (hash.isNull())
+        return PASS_CANCEL;
+    else
+        return (hash == password_hash) ? PASS_CORRECT : PASS_INCORRECT;
 }

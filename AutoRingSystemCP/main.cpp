@@ -34,31 +34,21 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
-    QByteArray password_hash = settings.value("password_hash").toByteArray();
-    QByteArray password_salt = settings.value("password_salt").toByteArray();
-
     QFile session_lock(QDir::homePath() + "/.session");
 
-    QString passwd;
-    bool typed;
-    if ((!password_salt.isEmpty() && !password_hash.isEmpty()) && !(session_lock.exists())) {
-        while (true) {
-            passwd = QInputDialog::getText(
-                        nullptr, "Пароль", "Введите пароль системы: ", QLineEdit::Password,
-                        QString(), &typed);
-            if (!typed) return 0;
+    PasswordCheckState typed;
 
-            QString hash = get_password_hash(passwd.toUtf8(), password_salt);
-
-            if (hash != password_hash) {
-                QMessageBox::critical(nullptr, "Ошибка", "Неверный пароль");
-            } else {
-                if (session_lock.open(QIODevice::WriteOnly | QIODevice::Append)) {
-                    session_lock.write("SL\n");
-                    session_lock.close();
-                }
-                break;
+    while ((typed = check_password())) {
+        if (typed == PASS_CORRECT) {
+            if (session_lock.open(QIODevice::WriteOnly | QIODevice::Append)) {
+                session_lock.write("SL\n");
+                session_lock.close();
             }
+            break;
+        } else if (typed == PASS_INCORRECT) {
+            QMessageBox::critical(nullptr, "Ошибка", "Неверный пароль");
+        } else {
+            return 0;
         }
     }
 
