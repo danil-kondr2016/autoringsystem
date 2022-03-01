@@ -49,7 +49,7 @@ public:
     QString lesson_file;
     bool file_is_changed;
 
-    QString device_ip_address;
+    QString device_address;
     bool time_sync;
 
     bool is_calculator = false;

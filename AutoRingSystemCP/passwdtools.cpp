@@ -56,10 +56,10 @@ QString get_password_hash(QByteArray password, QByteArray salt)
 
 QString request_password(QWidget * parent = nullptr)
 {
-    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
+    QSettings settings(C::confFileName(), QSettings::IniFormat);
 
-    QString password_hash = settings.value("password_hash").toString();
-    QByteArray password_salt = settings.value("password_salt").toByteArray();
+    QString password_hash = settings.value(C::PASSWORD_HASH).toString();
+    QByteArray password_salt = settings.value(C::PASSWORD_SALT).toByteArray();
 
     if (password_hash.isEmpty() && password_salt.isEmpty())
         return QString("");
@@ -80,9 +80,9 @@ QString request_password(QWidget * parent = nullptr)
 
 PasswordCheckState check_password()
 {
-    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
+    QSettings settings(C::confFileName(), QSettings::IniFormat);
 
-    QString password_hash = settings.value("password_hash").toString();
+    QString password_hash = settings.value(C::PASSWORD_HASH).toString();
     if (password_hash.isEmpty())
         return PASS_CORRECT;
 

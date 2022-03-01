@@ -11,17 +11,17 @@
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings),
-    settings(new QSettings(QDir::homePath() + QString("/.autoringrc.ini"), QSettings::IniFormat))
+    settings(new QSettings(C::confFileName(), QSettings::IniFormat))
 {
     ui->setupUi(this);
     connect(this, &Settings::accepted, this, &Settings::accept);
 
-    device_ip_address = settings->value("ip-address").toString();
-    time_sync = settings->value("time-sync").toBool();
-    password_hash = settings->value("password_hash").toByteArray();
-    password_salt = settings->value("password_salt").toByteArray();
+    device_address = settings->value(C::ADDRESS).toString();
+    time_sync = settings->value(C::TIME_SYNC).toBool();
+    password_hash = settings->value(C::PASSWORD_HASH).toByteArray();
+    password_salt = settings->value(C::PASSWORD_SALT).toByteArray();
 
-    ui->ip_address->setText(device_ip_address);
+    ui->address->setText(device_address);
     if (time_sync) {
         ui->sync_time->setCheckState(Qt::Checked);
     } else {
@@ -32,17 +32,17 @@ Settings::Settings(QWidget *parent) :
 void Settings::accept()
 {
     int is_sync = ui->sync_time->checkState();
-    QString ip_address = ui->ip_address->text();
+    QString address = ui->address->text();
     settings->clear();
-    settings->setValue("ip-address", ip_address);
+    settings->setValue(C::ADDRESS, address);
     if (is_sync == Qt::Checked) {
-        settings->setValue("time-sync", true);
+        settings->setValue(C::TIME_SYNC, true);
     } else {
-        settings->setValue("time-sync", false);
+        settings->setValue(C::TIME_SYNC, false);
     }
 
-    settings->setValue("password_hash", password_hash);
-    settings->setValue("password_salt", QString(password_salt));
+    settings->setValue(C::PASSWORD_HASH, password_hash);
+    settings->setValue(C::PASSWORD_SALT, QString(password_salt));
 
     emit applied();
     close();

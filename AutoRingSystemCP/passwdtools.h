@@ -5,6 +5,8 @@
 #include <QString>
 #include <QWidget>
 
+#include "constants.h"
+
 enum PasswordCheckState {
     PASS_CANCEL = -1,
     PASS_INCORRECT,
