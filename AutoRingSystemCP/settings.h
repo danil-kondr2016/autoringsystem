@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include <QtNetwork>
 
+#include "constants.h"
+
 namespace Ui {
 class Settings;
 }
@@ -19,12 +21,11 @@ public:
     explicit Settings(QWidget *parent = nullptr);
     ~Settings();
 
-    QString device_ip_address;
+    QString device_address;
     bool time_sync;
 
     QString old_password_hash, password_hash;
     QByteArray password_salt;
-
 
 Q_SIGNALS:
     void applied();

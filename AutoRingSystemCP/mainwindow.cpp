@@ -22,7 +22,7 @@ QString minutes_to_qstring(int minutes) {
     int h = minutes / 60;
     int m = minutes % 60;
 
-    return QTime(h, m).toString();
+    return QTime(h, m).toString("HH:mm");
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     about(new AboutDialog),
     network(new QNetworkAccessManager),
     calc(new Calculator),
-    settings(new QSettings(QDir::homePath() + QString("/.autoringrc.ini"), QSettings::IniFormat)),
+    settings(new QSettings(C::confFileName(), QSettings::IniFormat)),
     setwindow(new Settings)
 
 {
@@ -50,8 +50,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(network, &QNetworkAccessManager::finished, this, &MainWindow::getResponse);
     connect(calc, &Calculator::scheduleCalculated, this, &MainWindow::getScheduleFromCalculator);
 
-    device_ip_address = settings->value("ip-address").toString();
-    time_sync = settings->value("time-sync").toBool();
+    device_address = settings->value(C::ADDRESS).toString();
+    time_sync = settings->value(C::TIME_SYNC).toBool();
 
     if (time_sync)
         putTimeFromPC();
@@ -134,7 +134,7 @@ void MainWindow::doRequest(QString method, QString args = QString())
 {
     QNetworkRequest req;
 
-    QString url = "http://" + device_ip_address + "/autoring";
+    QString url = "http://" + device_address + "/autoring";
     req.setUrl(QUrl(url));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QByteArray data;
@@ -162,8 +162,8 @@ void MainWindow::putTimeFromPC()
 }
 
 void MainWindow::updateSettings() {
-    device_ip_address = settings->value("ip-address").toString();
-    time_sync = settings->value("time-sync").toBool();
+    device_address = settings->value(C::ADDRESS).toString();
+    time_sync = settings->value(C::TIME_SYNC).toBool();
 
     QString arg = QString("passwd=%1&pwdsalt=%2")
             .arg(setwindow->password_hash)
@@ -514,13 +514,13 @@ void MainWindow::getResponse(QNetworkReply* rp)
                 if (new_hash == "NULL")
                     new_hash = "";
 
-                settings->setValue("password_hash", new_hash);
+                settings->setValue(C::PASSWORD_HASH, new_hash);
             } else if (sx[0] == "pwdsalt") {
                 QString new_salt = sx[1];
                 if (new_salt == "NULL")
                     new_salt = "";
 
-                settings->setValue("password_salt", new_salt);
+                settings->setValue(C::PASSWORD_SALT, new_salt);
             } else if (sx[0] == "state") {
                 if (sx[1] == "0")
                     ui->statusBar->showMessage("Операция выполнена успешно");
@@ -529,10 +529,10 @@ void MainWindow::getResponse(QNetworkReply* rp)
             }
         }
     } else {
-        if (!device_ip_address.isEmpty())
+        if (!device_address.isEmpty())
             criticalError(
                         QString("Произошла ошибка при обращении к устройству по адресу %0.")
-                        .arg(device_ip_address));
+                        .arg(device_address));
         else
             criticalError("Адрес устройства не был указан.");
     }
@@ -592,40 +592,9 @@ void MainWindow::turnOnCalculatorMode()
     ui->tableView->setFocus();
     ui->tableView->setModel(nullptr);
 
-    int rc = schedule->rowCount();
-
-    QList<QStandardItem*> lesson_column;
-    QTime start, end;
-    for (int row = 0, lesson_delay = 0; row < rc; row++) {
-        start = QTime::fromString(schedule->index(row, 0).data().toString(), "H:mm");
-        end = QTime::fromString(schedule->index(row, 1).data().toString(), "H:mm");
-        lesson_delay = (end.hour()*60+end.minute()) - (start.hour()*60+start.minute());
-        lesson_column.append(new QStandardItem(QString::number(lesson_delay)));
-    }
-
-    QList<QStandardItem*> break_column;
-    QTime start1;
-    for (int row = 0, break_delay = 0; row < rc-1; row++) {
-        start1 = schedule->index(row+1, 0).data().toTime();
-        end = schedule->index(row, 1).data().toTime();
-        break_delay = (start1.hour()*60+start1.minute()) - (end.hour()*60+end.minute());
-        break_column.append(new QStandardItem(QString::number(break_delay)));
-    }
-    break_column.append(new QStandardItem(QString("0")));
-
-    QList<QStandardItem*> rings_column;
-    rings_column = schedule->takeColumn(2);
-
-    schedule->setColumnCount(1);
-
-    schedule->appendColumn(lesson_column);
-    schedule->setHorizontalHeaderItem(1, new QStandardItem(QString("Длина урока (мин)")));
-
-    schedule->appendColumn(break_column);
-    schedule->setHorizontalHeaderItem(2, new QStandardItem(QString("Длина перемены (мин)")));
-
-    schedule->appendColumn(rings_column);
-    schedule->setHorizontalHeaderItem(3, new QStandardItem(QString("Особые звонки")));
+    Schedule sch = schedule_from_qstdim(schedule);
+    CalcModeSchedule cmsch = schedule_to_cmschedule(sch);
+    cmschedule_to_qstdim(&schedule, cmsch);
 
     disconnect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOnCalculatorMode);
     connect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOffCalculatorMode);
@@ -647,26 +616,9 @@ void MainWindow::turnOffCalculatorMode()
     ui->tableView->setFocus();
     ui->tableView->setModel(nullptr);
 
-    QList<QStandardItem *> end_column;
-    int rc = schedule->rowCount();
-
-    int start = 0, end = 0;
-    for (int row = 0; row < rc; row++) {
-        start = qstring_to_minutes(schedule->index(row, 0).data().toString());
-        end = start + schedule->index(row, 1).data().toInt();
-        end_column.append(new QStandardItem(QTime(end/60, end%60).toString("HH:mm")));
-    }
-
-    QList<QStandardItem*> rings_column;
-    rings_column = schedule->takeColumn(3);
-
-    schedule->removeColumns(1, 2);
-
-    schedule->appendColumn(end_column);
-    schedule->setHorizontalHeaderItem(1, new QStandardItem(QString("Конец")));
-
-    schedule->appendColumn(rings_column);
-    schedule->setHorizontalHeaderItem(2, new QStandardItem(QString("Особые звонки")));
+    CalcModeSchedule cmsch = cmschedule_from_qstdim(schedule);
+    Schedule sch = cmschedule_to_schedule(cmsch);
+    schedule_to_qstdim(&schedule, sch);
 
     disconnect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOffCalculatorMode);
     connect(ui->action_togglecm, &QAction::triggered, this, &MainWindow::turnOnCalculatorMode);

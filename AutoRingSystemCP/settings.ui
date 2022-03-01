@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>602</width>
-    <height>163</height>
+    <height>168</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,12 +24,12 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>IP-адрес или DNS-имя устройства:</string>
+      <string>Сетевой адрес устройства:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="ip_address"/>
+    <widget class="QLineEdit" name="address"/>
    </item>
    <item>
     <widget class="QCheckBox" name="sync_time">

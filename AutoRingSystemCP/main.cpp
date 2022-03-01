@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-    QSettings settings(QDir::homePath() + "/.autoringrc.ini", QSettings::IniFormat);
+    QSettings settings(C::confFileName(), QSettings::IniFormat);
     QFile session_lock(QDir::homePath() + "/.session");
 
     PasswordCheckState typed;
