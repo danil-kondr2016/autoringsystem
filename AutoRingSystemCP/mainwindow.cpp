@@ -444,22 +444,8 @@ void MainWindow::downloadSchedule()
 
 void MainWindow::setTime()
 {
-    bool typed;
-
-    // TODO Replace it with custom time input dialog
-    QString time_string = QInputDialog::getText(
-                this,
-                "Ввод времени",
-                "Введите время в виде \"чч:мм:сс\"",
-                QLineEdit::Normal,
-                QString(),
-                &typed
-                );
-    if (!typed)
-        return;
-    QTime time = QTime::fromString(time_string, "H:mm:ss");
-
-    if (time.toString().isEmpty())
+    QTime time = get_time(this);
+    if (!time.isValid())
         return;
 
     QString curtime_string = "time=";

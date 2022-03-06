@@ -33,6 +33,7 @@
 #include "settings.h"
 #include "calculator.h"
 #include "ringdialog.h"
+#include "timedialog.h"
 
 namespace Ui {
 class MainWindow;

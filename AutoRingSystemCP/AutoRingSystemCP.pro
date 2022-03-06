@@ -33,7 +33,8 @@ SOURCES += \
     ringdialog.cpp \
     scheduletools.cpp \
     settings.cpp \
-    calculator.cpp
+    calculator.cpp \
+    timedialog.cpp
 
 HEADERS += \
     constants.h \
@@ -43,14 +44,16 @@ HEADERS += \
     ringdialog.h \
     scheduletools.h \
     settings.h \
-    calculator.h
+    calculator.h \
+    timedialog.h
 
 FORMS += \
         mainwindow.ui \
     aboutdialog.ui \
     ringdialog.ui \
     settings.ui \
-    calculator.ui
+    calculator.ui \
+    timedialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
